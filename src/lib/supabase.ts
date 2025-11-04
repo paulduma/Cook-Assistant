@@ -7,7 +7,16 @@ if (typeof import.meta !== 'undefined' && import.meta.env) {
   supabaseUrl = import.meta.env.VITE_SUPABASE_URL || supabaseUrl;
   supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || supabaseKey;
 }
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Create Supabase client with error handling
+export const supabase = (() => {
+  try {
+    return createClient(supabaseUrl, supabaseKey);
+  } catch (error) {
+    console.warn('Supabase client initialization failed:', error);
+    // Create a mock client that won't break the app
+    return createClient('https://placeholder.supabase.co', 'placeholder-key');
+  }
+})();
 // Helper functions for local storage fallback (for MVP without Supabase setup)
 export const localStorageHelper = {
   getRecipes: (): any[] => {
