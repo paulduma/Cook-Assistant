@@ -1,4 +1,4 @@
-# 🥗 Personal Recipes App (MVP)
+# 🥗 Personal Recipes App (MVP) - WIP
 
 ## 🎯 Goal
 
@@ -54,3 +54,14 @@ VITE_SUPABASE_URL=<your-supabase-url>
 VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 VITE_OPENAI_API_KEY=<your-openai-api-key>
 ```
+
+---
+
+## Work in Progress and Next steps
+- Refine LLM instructions
+- Refine LLM front / UI
+- Add tools to LLM
+    - use database of recipes
+    - write in recipes (add or modify recipes)
+    - write in meal planner (add it somewhere)
+- Refine meal planner UI / UX : must easily add recipes (pop up, not extra page, whith search query and simple filters)

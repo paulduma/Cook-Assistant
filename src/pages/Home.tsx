@@ -1,12 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChefHatIcon, BookOpenIcon, CalendarIcon, ShoppingCartIcon, SendIcon, SparklesIcon } from 'lucide-react';
+import { ChefHatIcon, BookOpenIcon, CalendarIcon, ShoppingCartIcon, SendIcon, SparklesIcon, LoaderIcon } from 'lucide-react';
+import { chatWithOpenAI, isOpenAIConfigured, ChatMessage } from '../lib/openai';
+import { localStorageHelper } from '../lib/supabase';
+import { Recipe } from '../types/recipe';
+
 export function Home() {
   const [prompt, setPrompt] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const handleSubmit = (e: React.FormEvent) => {
+
+  // Load recipes for context
+  useEffect(() => {
+    const loadedRecipes = localStorageHelper.getRecipes();
+    setRecipes(loadedRecipes);
+  }, []);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Please enable OpenAI integration in the Integrations panel to use the AI chat assistant.');
+    
+    if (!prompt.trim()) return;
+
+    // Check if OpenAI is configured
+    if (!isOpenAIConfigured()) {
+      setError('OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file and restart the dev server.');
+      return;
+    }
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: prompt.trim(),
+    };
+
+    // Add user message to chat
+    setMessages(prev => [...prev, userMessage]);
+    setPrompt('');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Send to OpenAI with recipe context
+      const response = await chatWithOpenAI([...messages, userMessage], recipes);
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: response,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get response from AI';
+      setError(errorMessage);
+      console.error('Chat error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
   return <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
       <div className="max-w-6xl mx-auto px-4 py-16">
@@ -26,14 +83,84 @@ export function Home() {
             suggestions.
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-16">
-          <div className="relative">
-            <input type="text" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Ask for recipes, plan meals, or get inspired..." className="w-full px-6 py-4 pr-14 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 shadow-sm" />
-            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors">
-              <SendIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </form>
+        {/* Chat Interface */}
+        <div className="max-w-4xl mx-auto mb-16">
+          {/* Messages Display */}
+          {messages.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 mb-4 p-6 max-h-96 overflow-y-auto">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
+                >
+                  <div
+                    className={`inline-block max-w-[80%] rounded-lg px-4 py-2 ${
+                      message.role === 'user'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex items-center gap-2 text-gray-500">
+                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">AI is thinking...</span>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Input Form */}
+          <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                value={prompt}
+                onChange={e => setPrompt(e.target.value)}
+                placeholder="Ask for recipes, plan meals, or get inspired..."
+                disabled={isLoading}
+                className="w-full px-6 py-4 pr-14 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !prompt.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <LoaderIcon className="w-5 h-5 animate-spin" />
+                ) : (
+                  <SendIcon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Clear Chat Button */}
+          {messages.length > 0 && (
+            <div className="text-center mt-4">
+              <button
+                onClick={() => {
+                  setMessages([]);
+                  setError(null);
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700 underline"
+              >
+                Clear chat history
+              </button>
+            </div>
+          )}
+        </div>
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-2xl mb-4">
