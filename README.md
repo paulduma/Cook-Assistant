@@ -29,6 +29,10 @@ The AI assistant uses an LLM to find, summarize, and suggest recipes that fit yo
 | AI                | LLM (OpenAI or similar) |
 | Styling           | Tailwind CSS            |
 
+Frontend built with a mix of Lovable and Figma Make for inspiration, and Magic Patterns to finalize and export a first codebase draft
+Backend developed with Cursor
+AI chatbot embed in MVP will use an OpenAI API key
+
 ---
 
 ## 🧰 Developer Setup
