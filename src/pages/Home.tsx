@@ -72,7 +72,7 @@ export function Home() {
             <ChefHatIcon className="w-10 h-10 text-emerald-600" />
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Your AI-Powered
+            My AI Powered
           </h1>
           <h2 className="text-5xl font-bold text-emerald-600 mb-6">
             Meal Planning Assistant
