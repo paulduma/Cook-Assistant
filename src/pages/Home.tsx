@@ -160,7 +160,11 @@ export function Home() {
           )}
         </div>
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/recipes')}
+            className="text-center p-4 rounded-xl hover:bg-emerald-50 transition-colors"
+          >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-2xl mb-4">
               <BookOpenIcon className="w-8 h-8 text-emerald-600" />
             </div>
@@ -170,8 +174,12 @@ export function Home() {
             <p className="text-gray-600">
               Ma bibliothèque de recettes perso
             </p>
-          </div>
-          <div className="text-center">
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/planner')}
+            className="text-center p-4 rounded-xl hover:bg-emerald-50 transition-colors"
+          >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-2xl mb-4">
               <CalendarIcon className="w-8 h-8 text-emerald-600" />
             </div>
@@ -181,8 +189,12 @@ export function Home() {
             <p className="text-gray-600">
               Planification de ma semaine
             </p>
-          </div>
-          <div className="text-center">
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/grocery')}
+            className="text-center p-4 rounded-xl hover:bg-emerald-50 transition-colors"
+          >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-2xl mb-4">
               <ShoppingCartIcon className="w-8 h-8 text-emerald-600" />
             </div>
@@ -192,7 +204,7 @@ export function Home() {
             <p className="text-gray-600">
               Génération automatique de ma liste de courses
             </p>
-          </div>
+          </button>
         </div>
         <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-12 text-center text-white">
           <SparklesIcon className="w-12 h-12 mx-auto mb-4" />
