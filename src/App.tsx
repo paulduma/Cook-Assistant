@@ -12,7 +12,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/recipes" element={<RecipeLibrary />} />
-          <Route path="/planner" element={<MealPlanner />} />
+          <Route path="/planning" element={<MealPlanner />} />
           <Route path="/grocery" element={<GroceryList />} />
         </Routes>
       </div>

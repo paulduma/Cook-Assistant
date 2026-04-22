@@ -177,14 +177,14 @@ export function Home() {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/planner')}
+            onClick={() => navigate('/planning')}
             className="text-center p-4 rounded-xl hover:bg-emerald-50 transition-colors"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-2xl mb-4">
               <CalendarIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Calendrier
+              Planning
             </h3>
             <p className="text-gray-600">
               Planification de ma semaine
@@ -219,7 +219,7 @@ export function Home() {
             <button onClick={() => navigate('/recipes')} className="px-6 py-3 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition-colors">
               Voir les recettes
             </button>
-            <button onClick={() => navigate('/planner')} className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition-colors">
+            <button onClick={() => navigate('/planning')} className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition-colors">
               Commencer la planification
             </button>
           </div>

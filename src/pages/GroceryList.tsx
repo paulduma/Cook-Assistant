@@ -89,7 +89,7 @@ export function GroceryList() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Liste de courses</h1>
             <p className="text-gray-600 mt-1">
-              Générée depuis votre planning de repas (0 ingrédient unique)
+              Générée depuis le planning de repas
             </p>
           </div>
           <div className="flex gap-2">

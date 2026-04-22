@@ -13,8 +13,8 @@ export function Navigation() {
     label: 'Recettes',
     icon: BookOpenIcon
   }, {
-    path: '/planner',
-    label: 'Planificateur',
+    path: '/planning',
+    label: 'Planning',
     icon: CalendarIcon
   }, {
     path: '/grocery',
@@ -29,7 +29,7 @@ export function Navigation() {
               <ChefHatIcon className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-semibold text-emerald-600">
-              MealPlanner
+              mealplanner
             </span>
           </Link>
           <div className="flex items-center gap-2">

@@ -142,7 +142,7 @@ export function RecipeLibrary() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Bibliothèque de recettes</h1>
           <p className="text-gray-600 mt-1">
-            Gérez et organisez vos recettes préférées
+            Liste de recettes enregistrées
           </p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium transition-colors">

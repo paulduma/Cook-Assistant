@@ -88,8 +88,8 @@ export function MealPlanner() {
   return <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Planificateur de repas</h1>
-          <p className="text-gray-600 mt-1">Planifiez vos repas de la semaine</p>
+          <h1 className="text-3xl font-bold text-gray-900">Planning</h1>
+          <p className="text-gray-600 mt-1">Repas de la semaine</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">
           <CalendarIcon className="w-4 h-4" />
