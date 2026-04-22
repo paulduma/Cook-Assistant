@@ -72,15 +72,13 @@ export function Home() {
             <ChefHatIcon className="w-10 h-10 text-emerald-600" />
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Mon assistant
+            Qu'est-ce qu'on
           </h1>
           <h2 className="text-5xl font-bold text-emerald-600 mb-6">
-            de planification de repas IA
+            mange cette semaine ?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Découvrez des recettes, planifiez vos repas de la semaine et générez
-            automatiquement des listes de courses. Simplifiez votre organisation
-            avec des suggestions alimentées par l'IA.
+            Générer une liste de courses et de recettes pour la semaine.
           </p>
         </div>
         {/* Chat Interface */}
@@ -128,7 +126,7 @@ export function Home() {
                 type="text"
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
-                placeholder="Demandez des recettes, planifiez vos repas ou trouvez de l'inspiration..."
+                placeholder="A la recherche d'inspiration..."
                 disabled={isLoading}
                 className="w-full px-6 py-4 pr-14 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -167,11 +165,10 @@ export function Home() {
               <BookOpenIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Bibliothèque de recettes
+              Recettes enregistées
             </h3>
             <p className="text-gray-600">
-              Enregistrez, organisez et gérez toutes vos recettes préférées au
-              même endroit grâce à un système d'étiquettes intelligent.
+              Ma bibliothèque de recettes perso
             </p>
           </div>
           <div className="text-center">
@@ -179,11 +176,10 @@ export function Home() {
               <CalendarIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Planificateur de repas
+              Calendrier
             </h3>
             <p className="text-gray-600">
-              Planifiez vos repas de la semaine grâce à une grille intuitive sur
-              7 jours pour le petit-déjeuner, le déjeuner et le dîner.
+              Planification de ma semaine
             </p>
           </div>
           <div className="text-center">
@@ -191,11 +187,10 @@ export function Home() {
               <ShoppingCartIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Listes de courses intelligentes
+              Listes de courses
             </h3>
             <p className="text-gray-600">
-              Générez automatiquement des listes de courses organisées à partir
-              de vos menus avec une catégorisation intelligente.
+              Génération automatique de ma liste de courses
             </p>
           </div>
         </div>
