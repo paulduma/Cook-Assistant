@@ -55,26 +55,26 @@ export function RecipeForm({
   return <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Recipe Title
+          Titre de la recette
         </label>
         <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Image URL (optional)
+          URL de l'image (optionnel)
         </label>
         <input type="url" value={image} onChange={e => setImage(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cooking Time (min)
+            Temps de cuisson (min)
           </label>
           <input type="number" value={cookingTime} onChange={e => setCookingTime(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" min="1" required />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Servings
+            Portions
           </label>
           <input type="number" value={servings} onChange={e => setServings(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" min="1" required />
         </div>
@@ -84,37 +84,37 @@ export function RecipeForm({
           Ingredients
         </label>
         {ingredients.map((ingredient, index) => <div key={index} className="flex gap-2 mb-2">
-            <input type="text" value={ingredient} onChange={e => updateIngredient(index, e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g., 2 cups flour" />
+            <input type="text" value={ingredient} onChange={e => updateIngredient(index, e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ex. : 2 tasses de farine" />
             <button type="button" onClick={() => removeIngredient(index)} className="p-2 text-red-600 hover:bg-red-50 rounded-md">
               <XIcon className="w-5 h-5" />
             </button>
           </div>)}
         <button type="button" onClick={addIngredient} className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 text-sm font-medium">
           <PlusIcon className="w-4 h-4" />
-          Add Ingredient
+          Ajouter un ingrédient
         </button>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Steps
+          Étapes
         </label>
         {steps.map((step, index) => <div key={index} className="flex gap-2 mb-2">
             <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center bg-gray-100 rounded-md text-sm font-medium text-gray-600">
               {index + 1}
             </span>
-            <textarea value={step} onChange={e => updateStep(index, e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" rows={2} placeholder="Describe this step..." />
+            <textarea value={step} onChange={e => updateStep(index, e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" rows={2} placeholder="Décrivez cette étape..." />
             <button type="button" onClick={() => removeStep(index)} className="p-2 text-red-600 hover:bg-red-50 rounded-md">
               <XIcon className="w-5 h-5" />
             </button>
           </div>)}
         <button type="button" onClick={addStep} className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 text-sm font-medium">
           <PlusIcon className="w-4 h-4" />
-          Add Step
+          Ajouter une étape
         </button>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tags
+          Étiquettes
         </label>
         <div className="flex flex-wrap gap-2 mb-2">
           {tags.map(tag => <span key={tag} className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm">
@@ -125,18 +125,18 @@ export function RecipeForm({
             </span>)}
         </div>
         <div className="flex gap-2">
-          <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Add a tag..." />
+          <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ajouter une étiquette..." />
           <button type="button" onClick={addTag} className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
-            Add
+            Ajouter
           </button>
         </div>
       </div>
       <div className="flex justify-end gap-3 pt-4 border-t">
         <button type="button" onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-          Cancel
+          Annuler
         </button>
         <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
-          Save Recipe
+          Enregistrer la recette
         </button>
       </div>
     </form>;

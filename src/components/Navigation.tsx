@@ -6,19 +6,19 @@ export function Navigation() {
   const isActive = (path: string) => location.pathname === path;
   const navItems = [{
     path: '/',
-    label: 'Home',
+    label: 'Accueil',
     icon: HomeIcon
   }, {
     path: '/recipes',
-    label: 'Recipes',
+    label: 'Recettes',
     icon: BookOpenIcon
   }, {
     path: '/planner',
-    label: 'Meal Planner',
+    label: 'Planificateur',
     icon: CalendarIcon
   }, {
     path: '/grocery',
-    label: 'Grocery List',
+    label: 'Liste de courses',
     icon: ShoppingCartIcon
   }];
   return <nav className="bg-white border-b border-gray-200">

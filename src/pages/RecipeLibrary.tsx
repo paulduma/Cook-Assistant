@@ -55,7 +55,7 @@ export function RecipeLibrary() {
     setEditingRecipe(null);
   };
   const handleDeleteRecipe = (id: string) => {
-    if (confirm('Are you sure you want to delete this recipe?')) {
+    if (confirm('Voulez-vous vraiment supprimer cette recette ?')) {
       const updatedRecipes = recipes.filter(r => r.id !== id);
       setRecipes(updatedRecipes);
       localStorageHelper.saveRecipes(updatedRecipes);
@@ -66,7 +66,7 @@ export function RecipeLibrary() {
   if (showForm) {
     return <div className="max-w-3xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          {editingRecipe ? 'Edit Recipe' : 'Add New Recipe'}
+          {editingRecipe ? 'Modifier la recette' : 'Ajouter une recette'}
         </h2>
         <RecipeForm recipe={editingRecipe || undefined} onSave={handleSaveRecipe} onCancel={() => {
         setShowForm(false);
@@ -78,7 +78,7 @@ export function RecipeLibrary() {
     return <div className="max-w-4xl mx-auto px-4 py-8">
         <button onClick={() => setSelectedRecipe(null)} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
           <XIcon className="w-5 h-5" />
-          Back to Library
+          Retour à la bibliothèque
         </button>
         {selectedRecipe.image && <img src={selectedRecipe.image} alt={selectedRecipe.title} className="w-full h-64 object-cover rounded-lg mb-6" />}
         <div className="flex justify-between items-start mb-6">
@@ -87,9 +87,9 @@ export function RecipeLibrary() {
               {selectedRecipe.title}
             </h1>
             <div className="flex gap-4 text-gray-600">
-              <span>{selectedRecipe.cookingTime} minutes</span>
+              <span>{selectedRecipe.cookingTime} min</span>
               <span>•</span>
-              <span>{selectedRecipe.servings} servings</span>
+              <span>{selectedRecipe.servings} portions</span>
             </div>
           </div>
           <div className="flex gap-2">
@@ -97,10 +97,10 @@ export function RecipeLibrary() {
             setEditingRecipe(selectedRecipe);
             setShowForm(true);
           }} className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
-              Edit
+              Modifier
             </button>
             <button onClick={() => handleDeleteRecipe(selectedRecipe.id)} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-              Delete
+              Supprimer
             </button>
           </div>
         </div>
@@ -140,24 +140,24 @@ export function RecipeLibrary() {
   return <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Recipe Library</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Bibliothèque de recettes</h1>
           <p className="text-gray-600 mt-1">
-            Manage and organize your favorite recipes
+            Gérez et organisez vos recettes préférées
           </p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium transition-colors">
           <PlusIcon className="w-5 h-5" />
-          Add Recipe
+          Ajouter une recette
         </button>
       </div>
       <div className="mb-6 space-y-4">
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search recipes..." className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Rechercher des recettes..." className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
         {allTags.length > 0 && <div className="flex flex-wrap gap-2">
             <button onClick={() => setSelectedTag(null)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedTag === null ? 'bg-emerald-500 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-emerald-500'}`}>
-              All Recipes
+              Toutes les recettes
             </button>
             {allTags.map(tag => <button key={tag} onClick={() => setSelectedTag(tag)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedTag === tag ? 'bg-emerald-500 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-emerald-500'}`}>
                 {tag}
@@ -165,9 +165,9 @@ export function RecipeLibrary() {
           </div>}
       </div>
       {filteredRecipes.length === 0 ? <div className="text-center py-16 bg-gray-50 rounded-xl">
-          <p className="text-gray-500 text-lg mb-4">No recipes found</p>
+          <p className="text-gray-500 text-lg mb-4">Aucune recette trouvée</p>
           <button onClick={() => setShowForm(true)} className="text-emerald-600 hover:text-emerald-700 font-medium">
-            Add your first recipe
+            Ajouter votre première recette
           </button>
         </div> : <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />)}

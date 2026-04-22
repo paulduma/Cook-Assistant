@@ -6,7 +6,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const container = document.getElementById("root");
 if (!container) {
-  throw new Error("Root element not found");
+  throw new Error("Élément racine introuvable");
 }
 
 try {
@@ -19,12 +19,12 @@ try {
     </React.StrictMode>
   );
 } catch (error) {
-  console.error("Error rendering app:", error);
+  console.error("Erreur lors du rendu de l'application :", error);
   container.innerHTML = `
     <div style="padding: 20px; font-family: system-ui; color: red;">
-      <h1>Error loading app</h1>
+      <h1>Erreur de chargement de l'application</h1>
       <p>${error instanceof Error ? error.message : String(error)}</p>
-      <p>Check the browser console for more details.</p>
+      <p>Consultez la console du navigateur pour plus de détails.</p>
     </div>
   `;
 }

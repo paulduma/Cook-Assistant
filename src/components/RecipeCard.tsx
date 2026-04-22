@@ -42,11 +42,11 @@ export function RecipeCard({
         <div className="flex items-center gap-4 text-gray-600 text-sm mb-3">
           <div className="flex items-center gap-1.5">
             <ClockIcon className="w-4 h-4" />
-            <span>{recipe.cookingTime} minutes</span>
+            <span>{recipe.cookingTime} min</span>
           </div>
           <div className="flex items-center gap-1.5">
             <UsersIcon className="w-4 h-4" />
-            <span>{recipe.servings} servings</span>
+            <span>{recipe.servings} portions</span>
           </div>
         </div>
         {recipe.tags.length > 0 && <div className="flex flex-wrap gap-2">
@@ -59,7 +59,7 @@ export function RecipeCard({
           </div>}
         {recipe.ingredients.length > 0 && <div className="mt-3 pt-3 border-t border-gray-100">
             <p className="text-sm text-gray-600 font-medium mb-1">
-              Ingredients:
+              Ingredients :
             </p>
             <p className="text-xs text-gray-500 line-clamp-2">
               {recipe.ingredients.slice(0, 3).join(', ')}

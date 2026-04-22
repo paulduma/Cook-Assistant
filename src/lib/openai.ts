@@ -18,27 +18,27 @@ export interface ChatMessage {
  */
 const createSystemPrompt = (recipes: Recipe[]): string => {
   const recipeContext = recipes.length > 0
-    ? `\n\nYou have access to the user's saved recipes:\n${recipes.map(r => 
-        `- ${r.title} (${r.cookingTime} min, ${r.servings} servings, tags: ${r.tags.join(', ')})`
+    ? `\n\nVous avez accès aux recettes sauvegardées par l'utilisateur :\n${recipes.map(r => 
+        `- ${r.title} (${r.cookingTime} min, ${r.servings} portions, étiquettes : ${r.tags.join(', ')})`
       ).join('\n')}`
-    : '\n\nThe user does not have any saved recipes yet.';
+    : "\n\nL'utilisateur n'a pas encore de recettes sauvegardées.";
 
-  return `You are a helpful cooking assistant for a meal planning app. Your role is to:
-1. Suggest recipes based on user preferences, dietary restrictions, available ingredients, or cuisine types
-2. Help plan meals for the week
-3. Provide cooking tips and inspiration
-4. Reference the user's saved recipes when relevant
-5. Suggest new recipes that can be added to their library
-6. Help with meal planning strategies
+  return `Vous êtes un assistant culinaire utile pour une application de planification de repas. Votre rôle est de :
+1. Suggérer des recettes selon les préférences de l'utilisateur, ses restrictions alimentaires, les ingrédients disponibles ou les types de cuisine
+2. Aider à planifier les repas de la semaine
+3. Fournir des conseils de cuisine et de l'inspiration
+4. Faire référence aux recettes sauvegardées de l'utilisateur lorsque c'est pertinent
+5. Proposer de nouvelles recettes à ajouter à sa bibliothèque
+6. Aider avec des stratégies de planification des repas
 
-When suggesting recipes, provide:
-- Recipe name
-- Brief description
-- Key ingredients (3-5 main ones)
-- Estimated cooking time
-- Suggested servings
+Quand vous suggérez des recettes, indiquez :
+- Nom de la recette
+- Brève description
+- Ingrédients principaux (3 à 5)
+- Temps de cuisson estimé
+- Nombre de portions conseillé
 
-Be conversational, friendly, and helpful. Keep responses concise but informative.${recipeContext}`;
+Répondez en français, de manière conversationnelle, chaleureuse et utile. Gardez des réponses concises mais informatives.${recipeContext}`;
 };
 
 /**
@@ -51,7 +51,7 @@ export async function chatWithOpenAI(
   const apiKey = getApiKey();
   
   if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file.');
+    throw new Error("Clé API OpenAI introuvable. Ajoutez VITE_OPENAI_API_KEY à votre fichier .env.");
   }
 
   // Create system message with recipe context
@@ -97,7 +97,7 @@ export async function chatWithOpenAI(
     const assistantMessage = data.choices[0]?.message?.content;
 
     if (!assistantMessage) {
-      throw new Error('No response from OpenAI');
+      throw new Error("Aucune réponse reçue d'OpenAI");
     }
 
     return assistantMessage;
@@ -105,7 +105,7 @@ export async function chatWithOpenAI(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Failed to communicate with OpenAI API');
+    throw new Error("Échec de la communication avec l'API OpenAI");
   }
 }
 

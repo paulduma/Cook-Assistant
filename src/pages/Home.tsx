@@ -32,7 +32,7 @@ export function Home() {
 
     // Check if OpenAI is configured
     if (!isOpenAIConfigured()) {
-      setError('OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file and restart the dev server.');
+      setError("Clé API OpenAI introuvable. Ajoutez VITE_OPENAI_API_KEY dans votre fichier .env puis redémarrez le serveur de développement.");
       return;
     }
 
@@ -58,7 +58,7 @@ export function Home() {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get response from AI';
+      const errorMessage = err instanceof Error ? err.message : "Impossible d'obtenir une réponse de l'IA";
       setError(errorMessage);
       console.error('Chat error:', err);
     } finally {
@@ -72,15 +72,15 @@ export function Home() {
             <ChefHatIcon className="w-10 h-10 text-emerald-600" />
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            My AI Powered
+            Mon assistant
           </h1>
           <h2 className="text-5xl font-bold text-emerald-600 mb-6">
-            Meal Planning Assistant
+            de planification de repas IA
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover recipes, plan your weekly meals, and automatically generate
-            grocery lists. Make meal planning effortless with AI-powered
-            suggestions.
+            Découvrez des recettes, planifiez vos repas de la semaine et générez
+            automatiquement des listes de courses. Simplifiez votre organisation
+            avec des suggestions alimentées par l'IA.
           </p>
         </div>
         {/* Chat Interface */}
@@ -107,7 +107,7 @@ export function Home() {
               {isLoading && (
                 <div className="flex items-center gap-2 text-gray-500">
                   <LoaderIcon className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">AI is thinking...</span>
+                  <span className="text-sm">L'IA réfléchit...</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -128,7 +128,7 @@ export function Home() {
                 type="text"
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
-                placeholder="Ask for recipes, plan meals, or get inspired..."
+                placeholder="Demandez des recettes, planifiez vos repas ou trouvez de l'inspiration..."
                 disabled={isLoading}
                 className="w-full px-6 py-4 pr-14 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -156,7 +156,7 @@ export function Home() {
                 }}
                 className="text-sm text-gray-500 hover:text-gray-700 underline"
               >
-                Clear chat history
+                Effacer l'historique
               </button>
             </div>
           )}
@@ -167,11 +167,11 @@ export function Home() {
               <BookOpenIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Recipe Library
+              Bibliothèque de recettes
             </h3>
             <p className="text-gray-600">
-              Store, organize, and manage all your favorite recipes in one place
-              with smart tagging.
+              Enregistrez, organisez et gérez toutes vos recettes préférées au
+              même endroit grâce à un système d'étiquettes intelligent.
             </p>
           </div>
           <div className="text-center">
@@ -179,11 +179,11 @@ export function Home() {
               <CalendarIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Meal Planner
+              Planificateur de repas
             </h3>
             <p className="text-gray-600">
-              Plan your weekly meals with an intuitive 7-day grid for breakfast,
-              lunch, and dinner.
+              Planifiez vos repas de la semaine grâce à une grille intuitive sur
+              7 jours pour le petit-déjeuner, le déjeuner et le dîner.
             </p>
           </div>
           <div className="text-center">
@@ -191,29 +191,29 @@ export function Home() {
               <ShoppingCartIcon className="w-8 h-8 text-emerald-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Smart Grocery Lists
+              Listes de courses intelligentes
             </h3>
             <p className="text-gray-600">
-              Automatically generate organized grocery lists from your meal
-              plans with smart categorization.
+              Générez automatiquement des listes de courses organisées à partir
+              de vos menus avec une catégorisation intelligente.
             </p>
           </div>
         </div>
         <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-12 text-center text-white">
           <SparklesIcon className="w-12 h-12 mx-auto mb-4" />
           <h3 className="text-3xl font-bold mb-4">
-            Ready to transform your meal planning?
+            Prêt à transformer votre organisation des repas ?
           </h3>
           <p className="text-emerald-50 mb-8 text-lg">
-            Start by asking for recipe suggestions or browse your library to
-            begin planning.
+            Commencez par demander des suggestions de recettes ou parcourez votre
+            bibliothèque pour commencer à planifier.
           </p>
           <div className="flex gap-4 justify-center">
             <button onClick={() => navigate('/recipes')} className="px-6 py-3 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition-colors">
-              Browse Recipes
+              Voir les recettes
             </button>
             <button onClick={() => navigate('/planner')} className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition-colors">
-              Start Planning
+              Commencer la planification
             </button>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { Recipe, MealSlot } from '../types/recipe';
 import { localStorageHelper } from '../lib/supabase';
 import { RecipeCard } from '../components/RecipeCard';
 import { PlusIcon, XIcon, CalendarIcon } from 'lucide-react';
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
 export function MealPlanner() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -67,7 +67,7 @@ export function MealPlanner() {
   if (showRecipeSelector) {
     return <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Select a Recipe</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Sélectionner une recette</h2>
           <button onClick={() => {
           setShowRecipeSelector(false);
           setSelectedSlot(null);
@@ -76,9 +76,9 @@ export function MealPlanner() {
           </button>
         </div>
         {recipes.length === 0 ? <div className="text-center py-16">
-            <p className="text-gray-500 mb-4">No recipes available</p>
+            <p className="text-gray-500 mb-4">Aucune recette disponible</p>
             <a href="/recipes" className="text-emerald-600 hover:text-emerald-700 font-medium">
-              Add recipes to your library first
+              Ajoutez d'abord des recettes à votre bibliothèque
             </a>
           </div> : <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe.id)} />)}
@@ -88,12 +88,12 @@ export function MealPlanner() {
   return <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meal Planner</h1>
-          <p className="text-gray-600 mt-1">Plan your meals for the week</p>
+          <h1 className="text-3xl font-bold text-gray-900">Planificateur de repas</h1>
+          <p className="text-gray-600 mt-1">Planifiez vos repas de la semaine</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">
           <CalendarIcon className="w-4 h-4" />
-          This Week
+          Cette semaine
         </button>
       </div>
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -110,7 +110,7 @@ export function MealPlanner() {
             <tbody>
               {MEALS.map((meal, mealIndex) => <tr key={meal} className={mealIndex < MEALS.length - 1 ? 'border-b border-gray-200' : ''}>
                   <td className="bg-gray-50 p-4 font-medium text-gray-900 capitalize">
-                    {meal}
+                    {meal === 'breakfast' ? 'Petit-déjeuner' : meal === 'lunch' ? 'Déjeuner' : 'Dîner'}
                   </td>
                   {DAYS.map((_, dayIndex) => {
                 const recipe = getRecipeForSlot(dayIndex, meal);

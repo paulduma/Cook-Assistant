@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div style={{ padding: '20px', fontFamily: 'system-ui' }}>
-          <h1 style={{ color: 'red' }}>Something went wrong</h1>
+          <h1 style={{ color: 'red' }}>Une erreur est survenue</h1>
           <p>{this.state.error?.message}</p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
               marginTop: '10px',
             }}
           >
-            Try again
+            Réessayer
           </button>
         </div>
       );
