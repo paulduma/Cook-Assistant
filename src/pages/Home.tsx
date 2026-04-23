@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChefHatIcon, BookOpenIcon, CalendarIcon, ShoppingCartIcon, SendIcon, SparklesIcon, LoaderIcon } from 'lucide-react';
+import { ChefHatIcon, BookOpenIcon, CalendarIcon, ShoppingCartIcon, SendIcon, LoaderIcon } from 'lucide-react';
 import { chatWithOpenAI, isOpenAIConfigured, ChatMessage } from '../lib/openai';
 import { localStorageHelper } from '../lib/supabase';
 import { Recipe } from '../types/recipe';
@@ -205,24 +205,6 @@ export function Home() {
               Génération automatique de ma liste de courses
             </p>
           </button>
-        </div>
-        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-12 text-center text-white">
-          <SparklesIcon className="w-12 h-12 mx-auto mb-4" />
-          <h3 className="text-3xl font-bold mb-4">
-            Prêt à transformer votre organisation des repas ?
-          </h3>
-          <p className="text-emerald-50 mb-8 text-lg">
-            Commencez par demander des suggestions de recettes ou parcourez votre
-            bibliothèque pour commencer à planifier.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <button onClick={() => navigate('/recipes')} className="px-6 py-3 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition-colors">
-              Voir les recettes
-            </button>
-            <button onClick={() => navigate('/planning')} className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition-colors">
-              Commencer la planification
-            </button>
-          </div>
         </div>
       </div>
     </div>;
