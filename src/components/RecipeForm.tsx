@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Recipe } from '../types/recipe';
 import { XIcon, PlusIcon } from 'lucide-react';
 interface RecipeFormProps {
@@ -19,6 +19,8 @@ export function RecipeForm({
   const [servings, setServings] = useState(recipe?.servings || 4);
   const [tags, setTags] = useState<string[]>(recipe?.tags || []);
   const [newTag, setNewTag] = useState('');
+  const ingredientRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const stepRefs = useRef<Array<HTMLTextAreaElement | null>>([]);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
@@ -52,7 +54,46 @@ export function RecipeForm({
     }
   };
   const removeTag = (tag: string) => setTags(tags.filter(t => t !== tag));
-  return <form onSubmit={handleSubmit} className="space-y-6">
+  const focusNextIngredientLine = () => {
+    const nextIndex = ingredients.length;
+    addIngredient();
+    setTimeout(() => {
+      ingredientRefs.current[nextIndex]?.focus();
+    }, 0);
+  };
+  const focusNextStepLine = () => {
+    const nextIndex = steps.length;
+    addStep();
+    setTimeout(() => {
+      stepRefs.current[nextIndex]?.focus();
+    }, 0);
+  };
+  const handleIngredientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key !== 'Enter') {
+      return;
+    }
+    e.preventDefault();
+    const isLastIngredient = index === ingredients.length - 1;
+    if (isLastIngredient || ingredients[ingredients.length - 1].trim()) {
+      focusNextIngredientLine();
+    }
+  };
+  const handleStepKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, index: number) => {
+    if (e.key !== 'Enter') {
+      return;
+    }
+    e.preventDefault();
+    const isLastStep = index === steps.length - 1;
+    if (isLastStep || steps[steps.length - 1].trim()) {
+      focusNextStepLine();
+    }
+  };
+  const preventEnterSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+  return <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Titre de la recette
@@ -84,7 +125,7 @@ export function RecipeForm({
           Ingredients
         </label>
         {ingredients.map((ingredient, index) => <div key={index} className="flex gap-2 mb-2">
-            <input type="text" value={ingredient} onChange={e => updateIngredient(index, e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ex. : 2 tasses de farine" />
+            <input ref={el => ingredientRefs.current[index] = el} type="text" value={ingredient} onChange={e => updateIngredient(index, e.target.value)} onKeyDown={e => handleIngredientKeyDown(e, index)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ex. : 2 tasses de farine" />
             <button type="button" onClick={() => removeIngredient(index)} className="p-2 text-red-600 hover:bg-red-50 rounded-md">
               <XIcon className="w-5 h-5" />
             </button>
@@ -102,7 +143,7 @@ export function RecipeForm({
             <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center bg-gray-100 rounded-md text-sm font-medium text-gray-600">
               {index + 1}
             </span>
-            <textarea value={step} onChange={e => updateStep(index, e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" rows={2} placeholder="Décrivez cette étape..." />
+            <textarea ref={el => stepRefs.current[index] = el} value={step} onChange={e => updateStep(index, e.target.value)} onKeyDown={e => handleStepKeyDown(e, index)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" rows={2} placeholder="Décrivez cette étape..." />
             <button type="button" onClick={() => removeStep(index)} className="p-2 text-red-600 hover:bg-red-50 rounded-md">
               <XIcon className="w-5 h-5" />
             </button>
@@ -125,7 +166,7 @@ export function RecipeForm({
             </span>)}
         </div>
         <div className="flex gap-2">
-          <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ajouter une étiquette..." />
+          <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ajouter une étiquette..." />
           <button type="button" onClick={addTag} className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
             Ajouter
           </button>
