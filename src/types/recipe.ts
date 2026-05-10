@@ -17,4 +17,6 @@ export interface MealSlot {
 export interface GroceryItem {
   ingredient: string;
   recipes: string[]; // recipe titles using this ingredient
+  /** True when added manually (not from meal plan ingredients) */
+  manual?: boolean;
 }

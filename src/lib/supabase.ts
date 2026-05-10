@@ -32,5 +32,12 @@ export const localStorageHelper = {
   },
   saveMealPlan: (mealPlan: any[]) => {
     localStorage.setItem('mealPlan', JSON.stringify(mealPlan));
+  },
+  getExtraGroceryItems: (): string[] => {
+    const raw = localStorage.getItem('extraGroceryItems');
+    return raw ? JSON.parse(raw) : [];
+  },
+  saveExtraGroceryItems: (items: string[]) => {
+    localStorage.setItem('extraGroceryItems', JSON.stringify(items));
   }
 };
