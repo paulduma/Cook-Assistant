@@ -9,6 +9,7 @@ export function MealPlanner() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [mealPlan, setMealPlan] = useState<MealSlot[]>([]);
   const [showRecipeSelector, setShowRecipeSelector] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<{
     day: number;
     meal: string;
@@ -46,8 +47,7 @@ export function MealPlanner() {
     }
     setMealPlan(updatedMealPlan);
     localStorageHelper.saveMealPlan(updatedMealPlan);
-    setShowRecipeSelector(false);
-    setSelectedSlot(null);
+    closeRecipeSelector();
   };
   const handleRemoveRecipe = (day: number, meal: string) => {
     const updatedMealPlan = mealPlan.map(slot => slot.day === day && slot.meal === meal ? {
@@ -62,16 +62,26 @@ export function MealPlanner() {
       day,
       meal
     });
+    setSelectedTag(null);
     setShowRecipeSelector(true);
   };
+
+  const closeRecipeSelector = () => {
+    setShowRecipeSelector(false);
+    setSelectedSlot(null);
+    setSelectedTag(null);
+  };
+
+  const allTags = Array.from(new Set(recipes.flatMap(r => r.tags)));
+  const filteredRecipes = selectedTag
+    ? recipes.filter(r => r.tags.includes(selectedTag))
+    : recipes;
+
   if (showRecipeSelector) {
     return <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Sélectionner une recette</h2>
-          <button onClick={() => {
-          setShowRecipeSelector(false);
-          setSelectedSlot(null);
-        }} className="p-2 hover:bg-gray-100 rounded-md">
+          <button onClick={closeRecipeSelector} className="p-2 hover:bg-gray-100 rounded-md">
             <XIcon className="w-6 h-6" />
           </button>
         </div>
@@ -80,9 +90,38 @@ export function MealPlanner() {
             <a href="/recipes" className="text-emerald-600 hover:text-emerald-700 font-medium">
               Ajoutez d'abord des recettes à votre bibliothèque
             </a>
-          </div> : <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe.id)} />)}
-          </div>}
+          </div> : <>
+            {allTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                  onClick={() => setSelectedTag(null)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedTag === null ? 'bg-emerald-500 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-emerald-500'}`}
+                >
+                  Toutes
+                </button>
+                {allTags.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(tag)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedTag === tag ? 'bg-emerald-500 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-emerald-500'}`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+            {filteredRecipes.length === 0 ? (
+              <div className="text-center py-16 bg-gray-50 rounded-xl">
+                <p className="text-gray-500">Aucune recette avec cette étiquette</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredRecipes.map(recipe => (
+                  <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe.id)} />
+                ))}
+              </div>
+            )}
+          </>}
       </div>;
   }
   return <div className="max-w-7xl mx-auto px-4 py-8">
