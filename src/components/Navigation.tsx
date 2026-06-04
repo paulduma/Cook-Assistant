@@ -1,14 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChefHatIcon, HomeIcon, BookOpenIcon, CalendarIcon, ShoppingCartIcon } from 'lucide-react';
+import { ChefHatIcon, BookOpenIcon, CalendarIcon, ShoppingCartIcon } from 'lucide-react';
 export function Navigation() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   const navItems = [{
-    path: '/',
-    label: 'Accueil',
-    icon: HomeIcon
-  }, {
     path: '/recipes',
     label: 'Recettes',
     icon: BookOpenIcon
