@@ -64,7 +64,7 @@ export function RecipeLibrary() {
   };
   const allTags = Array.from(new Set(recipes.flatMap(r => r.tags)));
   if (showForm) {
-    return <div className="max-w-3xl mx-auto px-4 py-8">
+    return <div className="max-w-6xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           {editingRecipe ? 'Modifier la recette' : 'Ajouter une recette'}
         </h2>
@@ -75,7 +75,7 @@ export function RecipeLibrary() {
       </div>;
   }
   if (selectedRecipe) {
-    return <div className="max-w-4xl mx-auto px-4 py-8">
+    return <div className="max-w-6xl mx-auto px-4 py-8">
         <button onClick={() => setSelectedRecipe(null)} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
           <XIcon className="w-5 h-5" />
           Retour à la bibliothèque
@@ -109,10 +109,10 @@ export function RecipeLibrary() {
               {tag}
             </span>)}
         </div>
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="flex flex-col gap-8">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Ingredients
+              Ingrédients
             </h2>
             <ul className="space-y-2">
               {selectedRecipe.ingredients.map((ingredient, index) => <li key={index} className="flex items-start gap-2">

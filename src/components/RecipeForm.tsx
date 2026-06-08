@@ -122,7 +122,7 @@ export function RecipeForm({
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Ingredients
+          Ingrédients
         </label>
         {ingredients.map((ingredient, index) => <div key={index} className="flex gap-2 mb-2">
             <input ref={el => ingredientRefs.current[index] = el} type="text" value={ingredient} onChange={e => updateIngredient(index, e.target.value)} onKeyDown={e => handleIngredientKeyDown(e, index)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ex. : 2 tasses de farine" />
@@ -137,7 +137,7 @@ export function RecipeForm({
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Étapes
+          Instructions
         </label>
         {steps.map((step, index) => <div key={index} className="flex gap-2 mb-2">
             <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center bg-gray-100 rounded-md text-sm font-medium text-gray-600">
