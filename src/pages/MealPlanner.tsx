@@ -3,8 +3,22 @@ import { Recipe, MealSlot } from '../types/recipe';
 import { localStorageHelper } from '../lib/supabase';
 import { RecipeCard } from '../components/RecipeCard';
 import { PlusIcon, XIcon, CalendarIcon } from 'lucide-react';
-const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+const DAYS = [
+  { full: 'Lundi', short: 'Lun' },
+  { full: 'Mardi', short: 'Mar' },
+  { full: 'Mercredi', short: 'Mer' },
+  { full: 'Jeudi', short: 'Jeu' },
+  { full: 'Vendredi', short: 'Ven' },
+  { full: 'Samedi', short: 'Sam' },
+  { full: 'Dimanche', short: 'Dim' },
+];
 const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
+const MEAL_LABELS: Record<(typeof MEALS)[number], { full: string; short: string }> = {
+  breakfast: { full: 'Petit-déj', short: 'Mat.' },
+  lunch: { full: 'Déjeuner', short: 'Déj.' },
+  dinner: { full: 'Dîner', short: 'Dîn.' },
+};
 export function MealPlanner() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [mealPlan, setMealPlan] = useState<MealSlot[]>([]);
@@ -77,6 +91,38 @@ export function MealPlanner() {
     ? recipes.filter(r => r.tags.includes(selectedTag))
     : recipes;
 
+  const renderMealSlot = (dayIndex: number, meal: (typeof MEALS)[number]) => {
+    const recipe = getRecipeForSlot(dayIndex, meal);
+
+    if (recipe) {
+      return (
+        <div className="relative group h-full">
+          <div className="p-2 rounded-lg border border-gray-200 bg-white min-h-[3.5rem]">
+            <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug">
+              {recipe.title}
+            </p>
+            <p className="text-[11px] text-gray-500 mt-1">{recipe.cookingTime} min</p>
+          </div>
+          <button
+            onClick={() => handleRemoveRecipe(dayIndex, meal)}
+            className="absolute -top-1.5 -right-1.5 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <XIcon className="w-3 h-3" />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={() => openRecipeSelector(dayIndex, meal)}
+        className="w-full min-h-[3.5rem] flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-colors group"
+      >
+        <PlusIcon className="w-5 h-5 text-gray-400 group-hover:text-emerald-600" />
+      </button>
+    );
+  };
+
   if (showRecipeSelector) {
     return <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
@@ -136,38 +182,40 @@ export function MealPlanner() {
         </button>
       </div>
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-900 w-32"></th>
-                {DAYS.map(day => <th key={day} className="bg-gray-50 p-4 text-center font-semibold text-gray-900 min-w-[180px]">
-                    {day}
-                  </th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {MEALS.map((meal, mealIndex) => <tr key={meal} className={mealIndex < MEALS.length - 1 ? 'border-b border-gray-200' : ''}>
-                  <td className="bg-gray-50 p-4 font-medium text-gray-900 capitalize">
-                    {meal === 'breakfast' ? 'Petit-déjeuner' : meal === 'lunch' ? 'Déjeuner' : 'Dîner'}
+        <table className="w-full table-fixed">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="bg-gray-50 p-2 sm:p-3 w-14 sm:w-24" />
+              {MEALS.map(meal => (
+                <th
+                  key={meal}
+                  className="bg-gray-50 p-2 sm:p-3 text-center font-semibold text-gray-900 text-xs sm:text-sm"
+                >
+                  <span className="hidden sm:inline">{MEAL_LABELS[meal].full}</span>
+                  <span className="sm:hidden">{MEAL_LABELS[meal].short}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DAYS.map((day, dayIndex) => (
+              <tr
+                key={day.full}
+                className={dayIndex < DAYS.length - 1 ? 'border-b border-gray-200' : ''}
+              >
+                <td className="bg-gray-50 p-2 sm:p-3 font-medium text-gray-900 text-xs sm:text-sm align-middle">
+                  <span className="hidden sm:inline">{day.full}</span>
+                  <span className="sm:hidden">{day.short}</span>
+                </td>
+                {MEALS.map(meal => (
+                  <td key={meal} className="p-1.5 sm:p-2 align-top">
+                    {renderMealSlot(dayIndex, meal)}
                   </td>
-                  {DAYS.map((_, dayIndex) => {
-                const recipe = getRecipeForSlot(dayIndex, meal);
-                return <td key={dayIndex} className="p-3">
-                        {recipe ? <div className="relative group">
-                            <RecipeCard recipe={recipe} compact />
-                            <button onClick={() => handleRemoveRecipe(dayIndex, meal)} className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                              <XIcon className="w-3 h-3" />
-                            </button>
-                          </div> : <button onClick={() => openRecipeSelector(dayIndex, meal)} className="w-full h-20 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-colors group">
-                            <PlusIcon className="w-6 h-6 text-gray-400 group-hover:text-emerald-600" />
-                          </button>}
-                      </td>;
-              })}
-                </tr>)}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>;
 }
