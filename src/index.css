@@ -3,3 +3,25 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 /* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL */
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-normal;
+  }
+}
+
+@layer components {
+  .kicker {
+    @apply font-label text-[11px] font-semibold uppercase tracking-kicker text-ember;
+  }
+}
