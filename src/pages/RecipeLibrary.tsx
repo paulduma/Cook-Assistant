@@ -87,18 +87,17 @@ export function RecipeLibrary() {
 
   if (showForm) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          {editingRecipe ? 'Modifier la recette' : 'Ajouter une recette'}
-        </h2>
-        <RecipeForm
-          recipe={editingRecipe || undefined}
-          onSave={handleSaveRecipe}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingRecipe(null);
-          }}
-        />
+      <div className="bg-paper min-h-[calc(100vh-4rem)]">
+        <div className="max-w-[740px] mx-auto px-4 sm:px-11 py-8 sm:py-10">
+          <RecipeForm
+            recipe={editingRecipe || undefined}
+            onSave={handleSaveRecipe}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingRecipe(null);
+            }}
+          />
+        </div>
       </div>
     );
   }

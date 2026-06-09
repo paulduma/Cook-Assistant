@@ -61,11 +61,13 @@ export function Field({
   value,
   placeholder,
   onChange,
+  required,
 }: {
   label: string;
   value?: string;
   placeholder?: string;
   onChange?: (v: string) => void;
+  required?: boolean;
 }) {
   return (
     <label className="block mb-5">
@@ -76,6 +78,7 @@ export function Field({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange?.(e.target.value)}
+        required={required}
       />
     </label>
   );
