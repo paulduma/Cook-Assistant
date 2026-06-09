@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Recipe } from '../types/recipe';
 import { RecipeCard } from '../components/RecipeCard';
 import { RecipeForm } from '../components/RecipeForm';
@@ -8,6 +9,7 @@ import { Kicker, Button } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
 
 export function RecipeLibrary() {
+  const location = useLocation();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +22,16 @@ export function RecipeLibrary() {
   useEffect(() => {
     loadRecipes();
   }, []);
+
+  useEffect(() => {
+    const openRecipeId = (location.state as { openRecipeId?: string } | null)?.openRecipeId;
+    if (openRecipeId && recipes.length > 0) {
+      const recipe = recipes.find((r) => r.id === openRecipeId);
+      if (recipe) {
+        setSelectedRecipe(recipe);
+      }
+    }
+  }, [recipes, location.state]);
 
   useEffect(() => {
     filterRecipes();
