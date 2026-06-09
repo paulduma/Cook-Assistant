@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kicker } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import { MobileScreen, MobileTopBar, MobileTabBar } from '../components/ui/MobileShell';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { pathFromNavKey, TabKey } from '../lib/nav';
 
 const FEATURES: { num: string; title: string; sub: string; path: string }[] = [
   {
@@ -34,7 +37,10 @@ function getWeekNumber(): number {
 export function Home() {
   const [prompt, setPrompt] = useState('');
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const weekNum = getWeekNumber();
+
+  const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
 
   const handleAsk = (query: string) => {
     const trimmed = query.trim();
@@ -82,76 +88,79 @@ export function Home() {
     </form>
   );
 
-  return (
-    <div className="bg-paper min-h-full">
-      {/* Desktop */}
-      <div className="hidden md:block">
-        <div className="max-w-[860px] mx-auto px-[52px] pt-[60px] text-center">
-          <Kicker className="mb-[22px]">Le menu de la semaine · N°{weekNum}</Kicker>
-          <h1 className="font-display text-[60px] leading-[1.04] text-ink m-0 mb-[22px]">
-            Qu'est-ce qu'on
-            <br />
-            mange cette semaine&nbsp;?
+  if (isMobile) {
+    return (
+      <MobileScreen
+        top={<MobileTopBar wordmark />}
+        bottom={<MobileTabBar active="recettes" onNavigate={handleNavTab} />}
+      >
+        <div className="px-6 pt-[34px] pb-6 text-center">
+          <Kicker className="mb-4">Le menu de la semaine · N°{weekNum}</Kicker>
+          <h1 className="font-display text-[34px] text-ink m-0 mb-4">
+            Qu'est-ce qu'on mange cette semaine&nbsp;?
           </h1>
-          <p className="text-[18.5px] text-ink-soft italic leading-[1.5] m-0 mb-10">
+          <p className="text-[16px] text-ink-soft italic leading-[1.5] m-0 mb-7">
             On compose le planning, la liste de courses suit toute seule.
           </p>
-          {searchForm()}
-        </div>
-
-        <div className="max-w-[1000px] mx-auto px-[52px] mt-[72px] pb-16">
-          <div className="border-t border-line pt-[34px] grid grid-cols-3">
-            {FEATURES.map(({ num, title, sub, path }, i) => (
+          {searchForm(true)}
+          <div className="font-label text-[10px] uppercase tracking-wide text-muted text-left mb-7">
+            Touchez pour discuter avec l'assistant →
+          </div>
+          <div className="text-left">
+            {FEATURES.map(({ num, title, sub, path }) => (
               <button
                 key={num}
                 type="button"
                 onClick={() => navigate(path)}
-                className={[
-                  'text-left px-[30px] bg-transparent border-0 cursor-pointer hover:bg-cream/60 transition-colors',
-                  i < 2 ? 'border-r border-line' : '',
-                ].join(' ')}
+                className="flex gap-3.5 py-[15px] border-b border-line-soft w-full text-left bg-transparent border-x-0 border-t-0 cursor-pointer"
               >
-                <div className="font-display text-[30px] text-ember mb-3">{num}</div>
-                <div className="font-label text-[12.5px] font-semibold uppercase tracking-[0.10em] text-ink mb-2">
-                  {title}
+                <div className="font-display text-[22px] text-ember w-[30px] shrink-0">{num}</div>
+                <div>
+                  <div className="font-label text-[11px] font-semibold uppercase tracking-wide text-ink mb-0.5">
+                    {title}
+                  </div>
+                  <div className="text-[14.5px] text-ink-soft leading-[1.4]">{sub}</div>
                 </div>
-                <div className="text-[15.5px] text-ink-soft leading-[1.5]">{sub}</div>
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </MobileScreen>
+    );
+  }
 
-      {/* Mobile */}
-      <div className="md:hidden px-6 pt-[34px] pb-8 text-center">
-        <Kicker className="mb-4">Le menu de la semaine · N°{weekNum}</Kicker>
-        <h1 className="font-display text-[34px] text-ink m-0 mb-4">
-          Qu'est-ce qu'on mange cette semaine&nbsp;?
+  return (
+    <div className="bg-paper min-h-full">
+      <div className="max-w-[860px] mx-auto px-[52px] pt-[60px] text-center">
+        <Kicker className="mb-[22px]">Le menu de la semaine · N°{weekNum}</Kicker>
+        <h1 className="font-display text-[60px] leading-[1.04] text-ink m-0 mb-[22px]">
+          Qu'est-ce qu'on
+          <br />
+          mange cette semaine&nbsp;?
         </h1>
-        <p className="text-[16px] text-ink-soft italic leading-[1.5] m-0 mb-7">
+        <p className="text-[18.5px] text-ink-soft italic leading-[1.5] m-0 mb-10">
           On compose le planning, la liste de courses suit toute seule.
         </p>
+        {searchForm()}
+      </div>
 
-        {searchForm(true)}
-        <div className="font-label text-[10px] uppercase tracking-wide text-muted text-left mb-7">
-          Touchez pour discuter avec l'assistant →
-        </div>
-
-        <div className="text-left">
-          {FEATURES.map(({ num, title, sub, path }) => (
+      <div className="max-w-[1000px] mx-auto px-[52px] mt-[72px] pb-16">
+        <div className="border-t border-line pt-[34px] grid grid-cols-3">
+          {FEATURES.map(({ num, title, sub, path }, i) => (
             <button
               key={num}
               type="button"
               onClick={() => navigate(path)}
-              className="flex gap-3.5 py-[15px] border-b border-line-soft w-full text-left bg-transparent border-x-0 border-t-0 cursor-pointer"
+              className={[
+                'text-left px-[30px] bg-transparent border-0 cursor-pointer hover:bg-cream/60 transition-colors',
+                i < 2 ? 'border-r border-line' : '',
+              ].join(' ')}
             >
-              <div className="font-display text-[22px] text-ember w-[30px] shrink-0">{num}</div>
-              <div>
-                <div className="font-label text-[11px] font-semibold uppercase tracking-wide text-ink mb-0.5">
-                  {title}
-                </div>
-                <div className="text-[14.5px] text-ink-soft leading-[1.4]">{sub}</div>
+              <div className="font-display text-[30px] text-ember mb-3">{num}</div>
+              <div className="font-label text-[12.5px] font-semibold uppercase tracking-[0.10em] text-ink mb-2">
+                {title}
               </div>
+              <div className="text-[15.5px] text-ink-soft leading-[1.5]">{sub}</div>
             </button>
           ))}
         </div>

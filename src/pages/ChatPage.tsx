@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { chatWithOpenAI, isOpenAIConfigured, ChatMessage } from '../lib/openai';
 import { localStorageHelper } from '../lib/supabase';
-import { Recipe, MealSlot } from '../types/recipe';
+import { addRecipeToFirstEmptySlot } from '../lib/planning';
+import { Recipe } from '../types/recipe';
 import { Kicker, AssistantAvatar, Thumb } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import { MobileScreen, MobileTopBar } from '../components/ui/MobileShell';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const CHIPS = ['Planifier la semaine', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
-const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
 
 function findMentionedRecipes(content: string, recipes: Recipe[]): Recipe[] {
   const lower = content.toLowerCase();
@@ -136,6 +138,7 @@ function WelcomeScreen({ onChipClick }: { onChipClick: (text: string) => void })
 export function ChatPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const initialMessage = (location.state as { initialMessage?: string } | null)?.initialMessage;
 
   const [prompt, setPrompt] = useState('');
@@ -210,24 +213,9 @@ export function ChatPage() {
   };
 
   const addToPlanning = (recipeId: string) => {
-    const mealPlan = localStorageHelper.getMealPlan();
-    for (let day = 0; day < 7; day++) {
-      for (const meal of MEALS) {
-        const idx = mealPlan.findIndex((s) => s.day === day && s.meal === meal);
-        if (idx < 0 || !mealPlan[idx].recipeId) {
-          let updated: MealSlot[];
-          if (idx >= 0) {
-            updated = [...mealPlan];
-            updated[idx] = { ...updated[idx], recipeId };
-          } else {
-            updated = [...mealPlan, { day, meal, recipeId }];
-          }
-          localStorageHelper.saveMealPlan(updated);
-          return;
-        }
-      }
+    if (!addRecipeToFirstEmptySlot(recipeId)) {
+      navigate('/planning');
     }
-    navigate('/planning');
   };
 
   const openRecipe = (recipeId: string) => {
@@ -364,42 +352,34 @@ export function ChatPage() {
     </div>
   );
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-paper text-ink font-body antialiased">
-      {/* Mobile header */}
-      <div
-        className="md:hidden bg-cream border-b border-line px-4 flex items-center gap-3"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)', paddingBottom: 12 }}
+  const errorBanner = error && (
+    <div className={isMobile ? 'px-4 pt-3 shrink-0' : 'px-4 pt-3'}>
+      <div className="max-w-[760px] mx-auto bg-ember-soft border border-line px-4 py-3 text-ember-dark text-[14px]">
+        {error}
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileScreen
+        scroll={false}
+        top={<MobileTopBar back title="Assistant" onBack={() => navigate('/')} />}
+        bottom={composer(true)}
       >
-        <button
-          onClick={() => navigate('/')}
-          className="p-1 text-ink bg-transparent border-0 cursor-pointer"
-          aria-label="Retour"
-        >
-          <Icon name="arrowLeft" size={20} strokeWidth={1.8} />
-        </button>
-        <span className="font-display text-[20px] text-ink">Assistant</span>
-      </div>
-
-      {error && (
-        <div className="px-4 pt-3">
-          <div className="max-w-[760px] mx-auto bg-ember-soft border border-line px-4 py-3 text-ember-dark text-[14px]">
-            {error}
-          </div>
+        <div className="flex flex-col flex-1 min-h-0">
+          {errorBanner}
+          {messageFeed(true)}
         </div>
-      )}
+      </MobileScreen>
+    );
+  }
 
-      {/* Desktop layout */}
-      <div className="hidden md:flex flex-col flex-1 min-h-0">
-        {messageFeed(false)}
-        {composer(false)}
-      </div>
-
-      {/* Mobile layout */}
-      <div className="md:hidden flex flex-col flex-1 min-h-0">
-        {messageFeed(true)}
-        {composer(true)}
-      </div>
+  return (
+    <div className="flex flex-col h-[calc(100vh-86px)] bg-paper text-ink font-body antialiased">
+      {errorBanner}
+      {messageFeed(false)}
+      {composer(false)}
     </div>
   );
 }

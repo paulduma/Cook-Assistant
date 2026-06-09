@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Recipe } from '../types/recipe';
 import { RecipeCard } from '../components/RecipeCard';
 import { RecipeForm } from '../components/RecipeForm';
 import { AddRecipeModal } from '../components/AddRecipeModal';
 import { localStorageHelper } from '../lib/supabase';
+import { addRecipeToFirstEmptySlot } from '../lib/planning';
+import { pathFromNavKey, TabKey } from '../lib/nav';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Kicker, Button } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import {
+  LibraryListMobile,
+  RecipeDetailMobile,
+  RecipeFormMobile,
+} from '../components/mobile/RecipeLibraryMobile';
 
 export function RecipeLibrary() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +28,8 @@ export function RecipeLibrary() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+  const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
 
   useEffect(() => {
     loadRecipes();
@@ -95,12 +107,78 @@ export function RecipeLibrary() {
     setShowForm(true);
   };
 
+  const handleAddToPlan = (recipeId: string) => {
+    if (!addRecipeToFirstEmptySlot(recipeId)) {
+      navigate('/planning');
+    }
+  };
+
   const allTags = Array.from(new Set(recipes.flatMap((r) => r.tags)));
+
+  if (isMobile) {
+    if (showForm) {
+      return (
+        <RecipeFormMobile
+          onBack={() => {
+            setShowForm(false);
+            setEditingRecipe(null);
+          }}
+        >
+          <RecipeForm
+            recipe={editingRecipe || undefined}
+            onSave={handleSaveRecipe}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingRecipe(null);
+            }}
+          />
+        </RecipeFormMobile>
+      );
+    }
+
+    if (selectedRecipe) {
+      return (
+        <RecipeDetailMobile
+          recipe={selectedRecipe}
+          onBack={() => setSelectedRecipe(null)}
+          onAddToPlan={() => handleAddToPlan(selectedRecipe.id)}
+          onEdit={() => {
+            setEditingRecipe(selectedRecipe);
+            setShowForm(true);
+          }}
+          onDelete={() => handleDeleteRecipe(selectedRecipe.id)}
+        />
+      );
+    }
+
+    return (
+      <>
+        <LibraryListMobile
+          recipes={filteredRecipes}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedTag={selectedTag}
+          onTagChange={setSelectedTag}
+          allTags={allTags}
+          onOpenRecipe={setSelectedRecipe}
+          onAddRecipe={() => setShowAddModal(true)}
+          onNavigate={handleNavTab}
+        />
+        {showAddModal && (
+          <AddRecipeModal
+            mode="import"
+            onClose={() => setShowAddModal(false)}
+            onCreateBlank={openBlankRecipeForm}
+          />
+        )}
+      </>
+    );
+  }
 
   if (showForm) {
     return (
-      <div className="bg-paper min-h-[calc(100vh-4rem)]">
-        <div className="max-w-[740px] mx-auto px-4 sm:px-11 py-8 sm:py-10">
+      <div className="bg-paper min-h-full">
+        <div className="max-w-[740px] mx-auto px-11 py-10">
           <RecipeForm
             recipe={editingRecipe || undefined}
             onSave={handleSaveRecipe}
@@ -118,8 +196,8 @@ export function RecipeLibrary() {
     const tag = selectedRecipe.tags[0] ?? 'Recette';
 
     return (
-      <div className="bg-paper min-h-[calc(100vh-4rem)]">
-        <div className="px-4 sm:px-16 py-8 sm:py-[38px]">
+      <div className="bg-paper min-h-full">
+        <div className="px-16 py-[38px]">
           <button
             onClick={() => setSelectedRecipe(null)}
             className="font-label flex items-center gap-2.5 text-[12px] uppercase tracking-wide text-ink-soft mb-[30px] cursor-pointer bg-transparent border-0"
@@ -128,10 +206,10 @@ export function RecipeLibrary() {
             Retour à la bibliothèque
           </button>
 
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6">
+          <div className="flex justify-between items-start gap-6">
             <div>
               <Kicker className="text-olive mb-3.5">{tag}</Kicker>
-              <h1 className="font-display text-[40px] sm:text-[56px] text-ink m-0 mb-4 leading-none">
+              <h1 className="font-display text-[56px] text-ink m-0 mb-4 leading-none">
                 {selectedRecipe.title}
               </h1>
               <div className="font-label flex gap-4 text-ink-soft text-[12.5px] uppercase tracking-wide">
@@ -163,7 +241,7 @@ export function RecipeLibrary() {
 
           <div className="border-t border-line mt-[30px]" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr] gap-10 lg:gap-14 mt-8">
+          <div className="grid grid-cols-[0.85fr_1.4fr] gap-14 mt-8">
             <div>
               <Kicker className="text-ink mb-[18px]">Ingrédients</Kicker>
               {selectedRecipe.ingredients.map((ingredient, index) => (
@@ -196,14 +274,12 @@ export function RecipeLibrary() {
   }
 
   return (
-    <div className="bg-paper min-h-[calc(100vh-4rem)]">
-      <div className="px-4 sm:px-[52px] py-8 sm:py-[42px]">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-3.5">
+    <div className="bg-paper min-h-full">
+      <div className="px-[52px] py-[42px]">
+        <div className="flex items-end justify-between mb-3.5">
           <div>
             <Kicker className="mb-2.5">Le carnet maison</Kicker>
-            <h1 className="font-display text-[34px] sm:text-[46px] text-ink m-0">
-              Bibliothèque de recettes
-            </h1>
+            <h1 className="font-display text-[46px] text-ink m-0">Bibliothèque de recettes</h1>
           </div>
           <Button icon="plus" variant="outline" onClick={() => setShowAddModal(true)}>
             Ajouter une recette
@@ -222,7 +298,7 @@ export function RecipeLibrary() {
         </div>
 
         {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-5 sm:gap-7 mb-7">
+          <div className="flex flex-wrap gap-7 mb-7">
             <button
               onClick={() => setSelectedTag(null)}
               className={[
@@ -262,7 +338,7 @@ export function RecipeLibrary() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[26px]">
+          <div className="grid grid-cols-3 gap-[26px]">
             {filteredRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}

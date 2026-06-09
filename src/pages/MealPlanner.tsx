@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Recipe, MealSlot } from '../types/recipe';
 import { localStorageHelper } from '../lib/supabase';
 import { AddRecipeModal, recipeToModalRecipe } from '../components/AddRecipeModal';
 import { Kicker, Button } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import { MobileScreen, MobileTabBar } from '../components/ui/MobileShell';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { pathFromNavKey, TabKey } from '../lib/nav';
 
 const DAYS = [
   { full: 'Lundi', short: 'Lun' },
@@ -50,6 +54,8 @@ const MONTHS = [
 ];
 
 export function MealPlanner() {
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [mealPlan, setMealPlan] = useState<MealSlot[]>([]);
   const [showRecipeSelector, setShowRecipeSelector] = useState(false);
@@ -180,10 +186,91 @@ export function MealPlanner() {
 
   const selectedDate = weekDates[mobileDay];
 
+  const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
+
+  const mobileTop = (
+    <div className="bg-cream border-b border-line shrink-0">
+      <div className="px-5 pb-3" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}>
+        <Kicker className="mb-1">Repas de la semaine</Kicker>
+        <div className="font-display text-[28px] text-ink">Planning</div>
+      </div>
+      <div className="flex gap-1.5 px-3.5 pb-3">
+        {DAYS.map((d, i) => {
+          const on = i === mobileDay;
+          const dateNum = weekDates[i].getDate();
+          return (
+            <button
+              key={d.short}
+              onClick={() => setMobileDay(i)}
+              className={`flex-1 text-center py-2 rounded-xl border-0 cursor-pointer ${on ? 'bg-ember' : 'bg-transparent'}`}
+            >
+              <div
+                className={[
+                  'font-label text-[9.5px] font-semibold uppercase tracking-wide',
+                  on ? 'text-creamlight' : 'text-muted',
+                ].join(' ')}
+              >
+                {d.short}
+              </div>
+              <div
+                className={`font-display text-[18px] mt-0.5 ${on ? 'text-creamlight' : 'text-ink'}`}
+              >
+                {dateNum}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const mobileBody = (
+    <div className="px-5 pt-5 pb-2">
+      <div className="font-display text-[20px] text-ink mb-4">
+        {DAYS[mobileDay].full} {selectedDate.getDate()} {MONTHS[selectedDate.getMonth()]}
+      </div>
+      {MEALS.map((meal) => {
+        const recipe = getRecipeForSlot(mobileDay, meal);
+        return (
+          <div key={meal} className="mb-3.5">
+            <Kicker className="text-muted mb-2">{MEAL_LABELS[meal]}</Kicker>
+            {recipe
+              ? renderFilledSlot(recipe, mobileDay, meal, true)
+              : renderEmptySlot(mobileDay, meal, true)}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <MobileScreen
+          top={mobileTop}
+          bottom={<MobileTabBar active="planning" onNavigate={handleNavTab} />}
+        >
+          {mobileBody}
+        </MobileScreen>
+        {showRecipeSelector && selectedSlot && (
+          <AddRecipeModal
+            mode="plan"
+            slot={{
+              dayLabel: DAYS[selectedSlot.day].full,
+              mealLabel: MEAL_LABELS[selectedSlot.meal],
+            }}
+            recipes={recipes.map(recipeToModalRecipe)}
+            onClose={closeRecipeSelector}
+            onPick={handleSelectRecipe}
+          />
+        )}
+      </>
+    );
+  }
+
   return (
     <div className="bg-paper min-h-full">
-      {/* Desktop */}
-      <div className="hidden md:block px-[52px] py-[42px]">
+      <div className="px-[52px] py-[42px]">
         <div className="flex items-end justify-between mb-7">
           <div>
             <Kicker className="mb-2.5">Repas de la semaine</Kicker>
@@ -228,64 +315,6 @@ export function MealPlanner() {
               })}
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Mobile */}
-      <div className="md:hidden">
-        <div
-          className="bg-cream border-b border-line"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
-        >
-          <div className="px-5 pb-3">
-            <Kicker className="mb-1">Repas de la semaine</Kicker>
-            <div className="font-display text-[28px] text-ink">Planning</div>
-          </div>
-          <div className="flex gap-1.5 px-3.5 pb-3">
-            {DAYS.map((d, i) => {
-              const on = i === mobileDay;
-              const dateNum = weekDates[i].getDate();
-              return (
-                <button
-                  key={d.short}
-                  onClick={() => setMobileDay(i)}
-                  className={`flex-1 text-center py-2 rounded-xl border-0 cursor-pointer ${on ? 'bg-ember' : 'bg-transparent'}`}
-                >
-                  <div
-                    className={[
-                      'font-label text-[9.5px] font-semibold uppercase tracking-wide',
-                      on ? 'text-creamlight' : 'text-muted',
-                    ].join(' ')}
-                  >
-                    {d.short}
-                  </div>
-                  <div
-                    className={`font-display text-[18px] mt-0.5 ${on ? 'text-creamlight' : 'text-ink'}`}
-                  >
-                    {dateNum}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="px-5 pt-5 pb-8">
-          <div className="font-display text-[20px] text-ink mb-4">
-            {DAYS[mobileDay].full} {selectedDate.getDate()}{' '}
-            {MONTHS[selectedDate.getMonth()]}
-          </div>
-          {MEALS.map((meal) => {
-            const recipe = getRecipeForSlot(mobileDay, meal);
-            return (
-              <div key={meal} className="mb-3.5">
-                <Kicker className="text-muted mb-2">{MEAL_LABELS[meal]}</Kicker>
-                {recipe
-                  ? renderFilledSlot(recipe, mobileDay, meal, true)
-                  : renderEmptySlot(mobileDay, meal, true)}
-              </div>
-            );
-          })}
         </div>
       </div>
 

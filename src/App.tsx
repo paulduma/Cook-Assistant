@@ -1,15 +1,16 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Navigation } from './components/Navigation';
+import { AppLayout } from './components/AppLayout';
 import { Home } from './pages/Home';
 import { ChatPage } from './pages/ChatPage';
 import { RecipeLibrary } from './pages/RecipeLibrary';
 import { MealPlanner } from './pages/MealPlanner';
 import { GroceryList } from './pages/GroceryList';
+
 export function App() {
-  return <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
+  return (
+    <BrowserRouter>
+      <AppLayout>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatPage />} />
@@ -17,6 +18,7 @@ export function App() {
           <Route path="/planning" element={<MealPlanner />} />
           <Route path="/grocery" element={<GroceryList />} />
         </Routes>
-      </div>
-    </BrowserRouter>;
+      </AppLayout>
+    </BrowserRouter>
+  );
 }

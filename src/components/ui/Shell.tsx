@@ -1,23 +1,28 @@
 import React from 'react';
 import { Icon } from './Icon';
-
-type NavKey = 'recettes' | 'planning' | 'courses' | '';
+import { TabKey } from '../../lib/nav';
 
 export function TopNav({
   active = '',
   onNavigate,
+  onHome,
 }: {
-  active?: NavKey;
-  onNavigate?: (key: NavKey) => void;
+  active?: TabKey;
+  onNavigate?: (key: TabKey) => void;
+  onHome?: () => void;
 }) {
-  const items: [NavKey, string][] = [
+  const items: [TabKey, string][] = [
     ['recettes', 'Recettes'],
     ['planning', 'Planning'],
     ['courses', 'Liste de courses'],
   ];
   return (
     <header className="h-[86px] flex items-center justify-between px-[52px] bg-cream border-b border-line">
-      <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onHome}
+        className="flex items-center gap-3 bg-transparent border-0 cursor-pointer p-0"
+      >
         <div className="w-[38px] h-[38px] rounded-full border-[1.5px] border-ember flex items-center justify-center text-ember shrink-0">
           <Icon name="hat" size={20} strokeWidth={1.6} />
         </div>
@@ -29,7 +34,7 @@ export function TopNav({
             cuisine maison
           </span>
         </div>
-      </div>
+      </button>
       <nav className="flex items-center gap-9">
         {items.map(([key, label]) => {
           const on = active === key;
@@ -59,8 +64,8 @@ export function Screen({
   nav = true,
   children,
 }: {
-  active?: NavKey;
-  onNavigate?: (key: NavKey) => void;
+  active?: TabKey;
+  onNavigate?: (key: TabKey) => void;
   nav?: boolean;
   children: React.ReactNode;
 }) {

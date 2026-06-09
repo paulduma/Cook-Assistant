@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Recipe, GroceryItem } from '../types/recipe';
 import { localStorageHelper } from '../lib/supabase';
 import { Kicker, Button, SectionRule } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import { MobileScreen, MobileTabBar } from '../components/ui/MobileShell';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { pathFromNavKey, TabKey } from '../lib/nav';
 
 type DisplayItem = {
   key: string;
@@ -168,6 +172,8 @@ function ViewToggle({
 }
 
 export function GroceryList() {
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
   const [groupByRecipe, setGroupByRecipe] = useState(false);
@@ -420,6 +426,38 @@ export function GroceryList() {
 
   const showEmptyState = groceryItems.length === 0;
 
+  const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
+
+  const mobileTop = (
+    <div
+      className="bg-cream border-b border-line px-5 shrink-0"
+      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
+    >
+      <div className="flex items-center justify-between mb-3 pb-3">
+        <div>
+          <Kicker className="mb-1">{kickerText()}</Kicker>
+          <div className="font-display text-[26px] text-ink">Liste de courses</div>
+        </div>
+        {!showEmptyState && (
+          <button
+            onClick={copyToClipboard}
+            className="flex items-center gap-1.5 text-ember bg-transparent border-0 cursor-pointer"
+          >
+            <Icon name="copy" size={18} strokeWidth={1.8} />
+            <span className="font-label text-[10.5px] font-semibold uppercase tracking-wide">
+              {copied ? 'Copié !' : 'Copier'}
+            </span>
+          </button>
+        )}
+      </div>
+      <ViewToggle
+        groupByRecipe={groupByRecipe}
+        onChange={setGroupByRecipe}
+        className="gap-5 pb-0"
+      />
+    </div>
+  );
+
   const renderCategorySections = () =>
     groupedByCategory().map(([category, items]) => (
       <div key={category} className="mb-7 mt-7 first:mt-0">
@@ -486,10 +524,28 @@ export function GroceryList() {
     return groupByRecipe ? renderRecipeSections() : renderCategorySections();
   };
 
+  if (isMobile) {
+    return (
+      <MobileScreen
+        top={mobileTop}
+        bottom={<MobileTabBar active="courses" onNavigate={handleNavTab} />}
+      >
+        <div className="px-5 pt-[18px] pb-2">
+          <AddItemForm
+            value={newExtraItem}
+            onChange={setNewExtraItem}
+            onAdd={addExtraItem}
+            compact
+          />
+          {renderListContent()}
+        </div>
+      </MobileScreen>
+    );
+  }
+
   return (
     <div className="bg-paper min-h-full">
-      {/* Desktop */}
-      <div className="hidden md:block max-w-[800px] mx-auto px-11 py-10">
+      <div className="max-w-[800px] mx-auto px-11 py-10">
         <div className="flex items-end justify-between mb-2">
           <div>
             <Kicker className="mb-2.5">{kickerText()}</Kicker>
@@ -515,47 +571,6 @@ export function GroceryList() {
         />
 
         {renderListContent()}
-      </div>
-
-      {/* Mobile */}
-      <div className="md:hidden">
-        <div
-          className="bg-cream border-b border-line px-5"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <Kicker className="mb-1">{kickerText()}</Kicker>
-              <div className="font-display text-[26px] text-ink">Liste de courses</div>
-            </div>
-            {!showEmptyState && (
-              <button
-                onClick={copyToClipboard}
-                className="flex items-center gap-1.5 text-ember bg-transparent border-0 cursor-pointer"
-              >
-                <Icon name="copy" size={18} strokeWidth={1.8} />
-                <span className="font-label text-[10.5px] font-semibold uppercase tracking-wide">
-                  {copied ? 'Copié !' : 'Copier'}
-                </span>
-              </button>
-            )}
-          </div>
-          <ViewToggle
-            groupByRecipe={groupByRecipe}
-            onChange={setGroupByRecipe}
-            className="gap-5 pb-0"
-          />
-        </div>
-
-        <div className="px-5 pt-[18px] pb-8">
-          <AddItemForm
-            value={newExtraItem}
-            onChange={setNewExtraItem}
-            onAdd={addExtraItem}
-            compact
-          />
-          {renderListContent()}
-        </div>
       </div>
     </div>
   );
