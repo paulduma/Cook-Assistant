@@ -6,7 +6,7 @@ Notes internes, idées pour la suite.
 
 ## À faire
 
-### Refine UX
+### Refine UX -> Done: next steps = navigation & small UX changes + real test on mobile planned at the end
 - Peaufiner le chat assistant (full-page)
 - Améliorer les parcours recettes / planning / liste de courses
 - Revoir la navigation et les flows clés
@@ -24,9 +24,3 @@ Notes internes, idées pour la suite.
 - Importer une recette depuis Instagram, TikTok ou n'importe quelle URL
 - Extraction automatique des ingrédients et étapes
 - Feature pour ajouter une recette facilement sans saisie manuelle
-
----
-
-## Idées en vrac
-
-<!-- Ajouter ici au fil de l'eau -->
