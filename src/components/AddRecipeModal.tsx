@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Recipe } from '../types/recipe';
 import { Icon } from './ui/Icon';
 import { Kicker, Button, Thumb } from './ui/primitives';

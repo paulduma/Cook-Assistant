@@ -1,4 +1,3 @@
-import React from 'react';
 import { Recipe } from '../types/recipe';
 import { Kicker, Thumb } from './ui/primitives';
 

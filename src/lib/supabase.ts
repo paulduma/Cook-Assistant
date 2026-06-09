@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Recipe, MealSlot } from '../types/recipe';
 // Safely access import.meta.env with fallback
 let supabaseUrl = 'https://your-project.supabase.co';
 let supabaseKey = 'your-anon-key';
@@ -19,18 +20,18 @@ export const supabase = (() => {
 })();
 // Helper functions for local storage fallback (for MVP without Supabase setup)
 export const localStorageHelper = {
-  getRecipes: (): any[] => {
+  getRecipes: (): Recipe[] => {
     const recipes = localStorage.getItem('recipes');
     return recipes ? JSON.parse(recipes) : [];
   },
-  saveRecipes: (recipes: any[]) => {
+  saveRecipes: (recipes: Recipe[]) => {
     localStorage.setItem('recipes', JSON.stringify(recipes));
   },
-  getMealPlan: (): any[] => {
+  getMealPlan: (): MealSlot[] => {
     const mealPlan = localStorage.getItem('mealPlan');
     return mealPlan ? JSON.parse(mealPlan) : [];
   },
-  saveMealPlan: (mealPlan: any[]) => {
+  saveMealPlan: (mealPlan: MealSlot[]) => {
     localStorage.setItem('mealPlan', JSON.stringify(mealPlan));
   },
   getExtraGroceryItems: (): string[] => {
