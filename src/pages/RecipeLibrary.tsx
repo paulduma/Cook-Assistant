@@ -6,7 +6,6 @@ import { AddRecipeModal } from '../components/AddRecipeModal';
 import { localStorageHelper } from '../lib/supabase';
 import { Kicker, Button } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
-import { XIcon } from 'lucide-react';
 
 export function RecipeLibrary() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -105,83 +104,80 @@ export function RecipeLibrary() {
   }
 
   if (selectedRecipe) {
+    const tag = selectedRecipe.tags[0] ?? 'Recette';
+
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <button
-          onClick={() => setSelectedRecipe(null)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <XIcon className="w-5 h-5" />
-          Retour à la bibliothèque
-        </button>
-        {selectedRecipe.image && (
-          <img
-            src={selectedRecipe.image}
-            alt={selectedRecipe.title}
-            className="w-full h-64 object-cover rounded-lg mb-6"
-          />
-        )}
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedRecipe.title}</h1>
-            <div className="flex gap-4 text-gray-600">
-              <span>{selectedRecipe.cookingTime} min</span>
-              <span>•</span>
-              <span>{selectedRecipe.servings} portions</span>
+      <div className="bg-paper min-h-[calc(100vh-4rem)]">
+        <div className="px-4 sm:px-16 py-8 sm:py-[38px]">
+          <button
+            onClick={() => setSelectedRecipe(null)}
+            className="font-label flex items-center gap-2.5 text-[12px] uppercase tracking-wide text-ink-soft mb-[30px] cursor-pointer bg-transparent border-0"
+          >
+            <Icon name="arrowLeft" size={17} strokeWidth={1.8} className="text-ember" />
+            Retour à la bibliothèque
+          </button>
+
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6">
+            <div>
+              <Kicker className="text-olive mb-3.5">{tag}</Kicker>
+              <h1 className="font-display text-[40px] sm:text-[56px] text-ink m-0 mb-4 leading-none">
+                {selectedRecipe.title}
+              </h1>
+              <div className="font-label flex gap-4 text-ink-soft text-[12.5px] uppercase tracking-wide">
+                <span>{selectedRecipe.cookingTime} min</span>
+                <span className="text-line">|</span>
+                <span>{selectedRecipe.servings} portions</span>
+              </div>
+            </div>
+            <div className="flex gap-3 shrink-0">
+              <Button
+                icon="edit"
+                variant="outline"
+                onClick={() => {
+                  setEditingRecipe(selectedRecipe);
+                  setShowForm(true);
+                }}
+              >
+                Modifier
+              </Button>
+              <Button
+                icon="trash"
+                variant="danger"
+                onClick={() => handleDeleteRecipe(selectedRecipe.id)}
+              >
+                Supprimer
+              </Button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setEditingRecipe(selectedRecipe);
-                setShowForm(true);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Modifier
-            </button>
-            <button
-              onClick={() => handleDeleteRecipe(selectedRecipe.id)}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
-              Supprimer
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2 mb-8">
-          {selectedRecipe.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-        <div className="flex flex-col gap-8">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Ingrédients</h2>
-            <ul className="space-y-2">
+
+          <div className="border-t border-line mt-[30px]" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr] gap-10 lg:gap-14 mt-8">
+            <div>
+              <Kicker className="text-ink mb-[18px]">Ingrédients</Kicker>
               {selectedRecipe.ingredients.map((ingredient, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-emerald-600 mt-1">•</span>
-                  <span className="text-gray-700">{ingredient}</span>
-                </li>
+                <div
+                  key={index}
+                  className="py-3 border-b border-line-soft text-[17px] text-ink-soft"
+                >
+                  {ingredient}
+                </div>
               ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Instructions</h2>
-            <ol className="space-y-4">
+            </div>
+            <div>
+              <Kicker className="text-ink mb-[18px]">Préparation</Kicker>
               {selectedRecipe.steps.map((step, index) => (
-                <li key={index} className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-emerald-600 text-white rounded-full text-sm font-medium">
-                    {index + 1}
-                  </span>
-                  <span className="text-gray-700">{step}</span>
-                </li>
+                <div
+                  key={index}
+                  className={`flex gap-5 py-3.5 ${index < selectedRecipe.steps.length - 1 ? 'border-b border-line-soft' : ''}`}
+                >
+                  <div className="font-display text-[30px] text-ember leading-none w-10 shrink-0">
+                    {String(index + 1).padStart(2, '0')}
+                  </div>
+                  <div className="text-[17px] text-ink-soft leading-[1.5] pt-1">{step}</div>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </div>
       </div>
