@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { chatWithOpenAI, isOpenAIConfigured, ChatMessage } from '../lib/openai';
+import { parseAssistantMessage } from '../lib/chatRecipes';
 import { fetchRecipes } from '../lib/recipes';
 import { addRecipeToFirstEmptySlot } from '../lib/planning';
 import { Recipe } from '../types/recipe';
@@ -10,11 +11,6 @@ import { MobileScreen, MobileTopBar } from '../components/ui/MobileShell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const CHIPS = ['Planifier la semaine', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
-
-function findMentionedRecipes(content: string, recipes: Recipe[]): Recipe[] {
-  const lower = content.toLowerCase();
-  return recipes.filter((r) => lower.includes(r.title.toLowerCase())).slice(0, 3);
-}
 
 function UserBubble({ children }: { children: React.ReactNode }) {
   return (
@@ -229,11 +225,11 @@ export function ChatPage() {
   };
 
   const renderAssistantMessage = (content: string, compact: boolean) => {
-    const mentioned = findMentionedRecipes(content, recipes);
+    const { text, mentioned } = parseAssistantMessage(content, recipes);
     return (
       <AssistantRow compact={compact}>
         <p className="text-[16px] md:text-[17.5px] text-ink-soft leading-[1.55] m-0 whitespace-pre-wrap mb-0">
-          {content}
+          {text}
         </p>
         {mentioned.length > 0 && (
           <div

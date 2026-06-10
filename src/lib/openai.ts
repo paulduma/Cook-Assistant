@@ -31,14 +31,16 @@ const createSystemPrompt = (recipes: Recipe[]): string => {
 5. Proposer de nouvelles recettes à ajouter à sa bibliothèque
 6. Aider avec des stratégies de planification des repas
 
-Quand vous suggérez des recettes, indiquez :
-- Nom de la recette
-- Brève description
-- Ingrédients principaux (3 à 5)
-- Temps de cuisson estimé
-- Nombre de portions conseillé
+Format de réponse (obligatoire) :
+- Pas de markdown : pas de **, #, listes à puces ni numérotées pour détailler les recettes.
+- Texte conversationnel court (2 à 4 phrases maximum) dans le corps du message.
+- Les fiches recettes s'affichent automatiquement sous votre message : ne répétez pas les ingrédients, étapes, temps ou portions dans le texte.
+- Quand vous recommandez des recettes du carnet de l'utilisateur, terminez TOUJOURS votre message par une ligne seule, exactement au format :
+  RECETTES: Titre exact 1 | Titre exact 2
+  (copiez les titres à l'identique depuis la liste du carnet, maximum 3 recettes)
+- Pour une idée de recette qui n'est pas dans le carnet, décrivez-la brièvement dans le texte sans ligne RECETTES.
 
-Répondez en français, de manière conversationnelle, chaleureuse et utile. Gardez des réponses concises mais informatives.${recipeContext}`;
+Répondez en français, de manière conversationnelle, chaleureuse et utile.${recipeContext}`;
 };
 
 /**
