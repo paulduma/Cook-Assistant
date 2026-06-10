@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Recipe, GroceryItem } from '../types/recipe';
+import { fetchRecipes } from '../lib/recipes';
 import { localStorageHelper } from '../lib/supabase';
 import { Kicker, Button, SectionRule } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
@@ -182,13 +183,18 @@ export function GroceryList() {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(loadCheckedItems);
 
   useEffect(() => {
-    loadGroceryList();
+    void loadGroceryList();
   }, []);
 
-  const loadGroceryList = () => {
-    const loadedRecipes = localStorageHelper.getRecipes();
+  const loadGroceryList = async () => {
     const mealPlan = localStorageHelper.getMealPlan();
     const extraRaw = localStorageHelper.getExtraGroceryItems();
+    let loadedRecipes: Recipe[] = [];
+    try {
+      loadedRecipes = await fetchRecipes();
+    } catch (err) {
+      console.warn('Failed to load recipes for grocery list:', err);
+    }
     const usedRecipeIds = new Set(
       mealPlan.filter((slot) => slot.recipeId).map((slot) => slot.recipeId)
     );
@@ -265,7 +271,7 @@ export function GroceryList() {
     }
     localStorageHelper.saveExtraGroceryItems([...extras, trimmed]);
     setNewExtraItem('');
-    loadGroceryList();
+    void loadGroceryList();
   };
 
   const removeManualItem = (ingredient: string) => {
@@ -282,7 +288,7 @@ export function GroceryList() {
         saveCheckedItems(updated);
         return updated;
       });
-      loadGroceryList();
+      void loadGroceryList();
     }
   };
 

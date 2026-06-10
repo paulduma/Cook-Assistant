@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Recipe, MealSlot } from '../types/recipe';
+import { fetchRecipes } from '../lib/recipes';
 import { localStorageHelper } from '../lib/supabase';
 import { AddRecipeModal, recipeToModalRecipe } from '../components/AddRecipeModal';
 import { Kicker, Button } from '../components/ui/primitives';
@@ -71,14 +72,17 @@ export function MealPlanner() {
   const weekDates = getWeekDates();
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
-  const loadData = () => {
-    const loadedRecipes = localStorageHelper.getRecipes();
-    const loadedMealPlan = localStorageHelper.getMealPlan();
-    setRecipes(loadedRecipes);
-    setMealPlan(loadedMealPlan);
+  const loadData = async () => {
+    setMealPlan(localStorageHelper.getMealPlan());
+    try {
+      const loadedRecipes = await fetchRecipes();
+      setRecipes(loadedRecipes);
+    } catch (err) {
+      console.warn('Failed to load recipes for meal planner:', err);
+    }
   };
 
   const getRecipeForSlot = (day: number, meal: string): Recipe | null => {

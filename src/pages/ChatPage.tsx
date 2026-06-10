@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { chatWithOpenAI, isOpenAIConfigured, ChatMessage } from '../lib/openai';
-import { localStorageHelper } from '../lib/supabase';
+import { fetchRecipes } from '../lib/recipes';
 import { addRecipeToFirstEmptySlot } from '../lib/planning';
 import { Recipe } from '../types/recipe';
 import { Kicker, AssistantAvatar, Thumb } from '../components/ui/primitives';
@@ -151,7 +151,13 @@ export function ChatPage() {
   const hasSentInitial = useRef(false);
 
   useEffect(() => {
-    setRecipes(localStorageHelper.getRecipes());
+    void (async () => {
+      try {
+        setRecipes(await fetchRecipes());
+      } catch (err) {
+        console.warn('Failed to load recipes for chat:', err);
+      }
+    })();
   }, []);
 
   useEffect(() => {
