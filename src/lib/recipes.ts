@@ -163,8 +163,17 @@ export async function migrateFromLocalStorage(): Promise<void> {
   const idMap = new Map<string, string>();
 
   for (const recipe of localRecipes) {
-    const { id: oldId, createdAt: _createdAt, ...recipeData } = recipe;
-    const created = await createRecipe(recipeData);
+    const { id: oldId, title, image, ingredients, steps, cookingTime, servings, tags } =
+      recipe;
+    const created = await createRecipe({
+      title,
+      image,
+      ingredients,
+      steps,
+      cookingTime,
+      servings,
+      tags,
+    });
     idMap.set(oldId, created.id);
   }
 

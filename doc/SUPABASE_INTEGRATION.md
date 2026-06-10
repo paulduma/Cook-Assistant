@@ -10,15 +10,15 @@ Step-by-step plan to replace localStorage recipe persistence with Supabase Postg
 
 Tick off as you go (works across multiple sessions):
 
-- [ ] **A1** — Supabase project created, `.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
-- [ ] **A2** — `recipes` table + RLS policies
-- [ ] **A3** — `recipe-images` Storage bucket + policies
-- [ ] **A4** — Smoke test (optional)
-- [ ] **B1** — `src/lib/recipes.ts` (CRUD, image upload, localStorage migration)
-- [ ] **B2** — `RecipeLibrary` + `RecipeForm` wired to Supabase
-- [ ] **B3** — Image file upload in form
-- [ ] **B4** — `MealPlanner`, `GroceryList`, `ChatPage` read from Supabase
-- [ ] **B5** — `npm run build` + manual test checklist
+- [x] **A1** — Supabase project created, `.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
+- [x] **A2** — `recipes` table + RLS policies
+- [x] **A3** — `recipe-images` Storage bucket + policies
+- [x] **A4** — Smoke test (optional)
+- [x] **B1** — `src/lib/recipes.ts` (CRUD, image upload, localStorage migration)
+- [x] **B2** — `RecipeLibrary` + `RecipeForm` wired to Supabase
+- [x] **B3** — Image file upload in form
+- [x] **B4** — `MealPlanner`, `GroceryList`, `ChatPage` read from Supabase
+- [x] **B5** — `npm run build` + manual test checklist
 - [ ] **C** *(future)* — Smart grocery ingredient merging
 
 ---
