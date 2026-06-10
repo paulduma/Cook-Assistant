@@ -1,16 +1,16 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Recipe } from '../types/recipe';
 import {
   IngredientLine,
   formatIngredients,
   parseIngredients,
 } from '../lib/ingredients';
-import { Kicker, Button, Field } from './ui/primitives';
+import { Kicker, Button, Field, Thumb } from './ui/primitives';
 import { Icon } from './ui/Icon';
 
 interface RecipeFormProps {
   recipe?: Recipe;
-  onSave: (recipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
+  onSave: (recipe: Omit<Recipe, 'id' | 'createdAt'>, imageFile?: File) => void;
   onCancel: () => void;
   saving?: boolean;
 }
@@ -21,6 +21,9 @@ const underlineInput =
 export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeFormProps) {
   const [title, setTitle] = useState(recipe?.title || '');
   const [image, setImage] = useState(recipe?.image || '');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [ingredients, setIngredients] = useState<IngredientLine[]>(() =>
     parseIngredients(recipe?.ingredients || [''])
   );
@@ -33,17 +36,47 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
   const nameRefs = useRef<Array<HTMLInputElement | null>>([]);
   const stepRefs = useRef<Array<HTMLTextAreaElement | null>>([]);
 
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [imageFile]);
+
+  const previewSrc = imagePreview || image || undefined;
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+    }
+    e.target.value = '';
+  };
+
+  const clearImageFile = () => {
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      title,
-      image: image || undefined,
-      ingredients: formatIngredients(ingredients),
-      steps: steps.filter((s) => s.trim()),
-      cookingTime,
-      servings,
-      tags,
-    });
+    onSave(
+      {
+        title,
+        image: imageFile ? undefined : image || undefined,
+        ingredients: formatIngredients(ingredients),
+        steps: steps.filter((s) => s.trim()),
+        cookingTime,
+        servings,
+        tags,
+      },
+      imageFile ?? undefined
+    );
   };
 
   const addIngredient = () => setIngredients([...ingredients, { quantity: '', name: '' }]);
@@ -141,11 +174,39 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
       </h1>
 
       <Field label="Titre de la recette" value={title} onChange={setTitle} required />
+
+      <Kicker className="text-ink-soft mb-3">Image</Kicker>
+      <Thumb label="aperçu" src={previewSrc} className="h-[180px] w-full max-w-[320px] mb-4" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageFileChange}
+        className="hidden"
+        id="recipe-image-file"
+      />
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {imageFile ? 'Changer la photo' : 'Choisir une photo'}
+        </Button>
+        {imageFile && (
+          <Button type="button" variant="ghost" onClick={clearImageFile}>
+            Retirer la photo
+          </Button>
+        )}
+      </div>
       <Field
-        label="URL de l'image (optionnel)"
+        label="Ou URL de l'image (optionnel)"
         value={image}
         placeholder="https://…"
-        onChange={setImage}
+        onChange={(value) => {
+          setImage(value);
+          if (value.trim()) clearImageFile();
+        }}
       />
 
       <div className="flex flex-col sm:flex-row gap-7">

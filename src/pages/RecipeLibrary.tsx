@@ -10,6 +10,7 @@ import {
   fetchRecipes,
   migrateFromLocalStorage,
   updateRecipe,
+  uploadRecipeImage,
 } from '../lib/recipes';
 import { addRecipeToFirstEmptySlot } from '../lib/planning';
 import { pathFromNavKey, TabKey } from '../lib/nav';
@@ -87,19 +88,35 @@ export function RecipeLibrary() {
     setFilteredRecipes(filtered);
   };
 
-  const handleSaveRecipe = async (recipeData: Omit<Recipe, 'id' | 'createdAt'>) => {
+  const handleSaveRecipe = async (
+    recipeData: Omit<Recipe, 'id' | 'createdAt'>,
+    imageFile?: File
+  ) => {
     setSaving(true);
     setError(null);
     try {
       if (editingRecipe) {
-        const updated = await updateRecipe(editingRecipe.id, recipeData);
+        let dataToSave = recipeData;
+        if (imageFile) {
+          const imageUrl = await uploadRecipeImage(editingRecipe.id, imageFile);
+          dataToSave = { ...recipeData, image: imageUrl };
+        }
+        const updated = await updateRecipe(editingRecipe.id, dataToSave);
         setRecipes((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
         if (selectedRecipe?.id === updated.id) {
           setSelectedRecipe(updated);
         }
       } else {
-        const created = await createRecipe(recipeData);
-        setRecipes((prev) => [created, ...prev]);
+        const dataForCreate = imageFile
+          ? { ...recipeData, image: undefined }
+          : recipeData;
+        const created = await createRecipe(dataForCreate);
+        let saved = created;
+        if (imageFile) {
+          const imageUrl = await uploadRecipeImage(created.id, imageFile);
+          saved = await updateRecipe(created.id, { image: imageUrl });
+        }
+        setRecipes((prev) => [saved, ...prev]);
       }
       setShowForm(false);
       setEditingRecipe(null);
