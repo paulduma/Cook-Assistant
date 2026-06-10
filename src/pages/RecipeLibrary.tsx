@@ -4,7 +4,13 @@ import { Recipe } from '../types/recipe';
 import { RecipeCard } from '../components/RecipeCard';
 import { RecipeForm } from '../components/RecipeForm';
 import { AddRecipeModal } from '../components/AddRecipeModal';
-import { localStorageHelper } from '../lib/supabase';
+import {
+  createRecipe,
+  deleteRecipe,
+  fetchRecipes,
+  migrateFromLocalStorage,
+  updateRecipe,
+} from '../lib/recipes';
 import { addRecipeToFirstEmptySlot } from '../lib/planning';
 import { pathFromNavKey, TabKey } from '../lib/nav';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -28,11 +34,14 @@ export function RecipeLibrary() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
 
   useEffect(() => {
-    loadRecipes();
+    void loadRecipes();
   }, []);
 
   useEffect(() => {
@@ -49,9 +58,18 @@ export function RecipeLibrary() {
     filterRecipes();
   }, [recipes, searchQuery, selectedTag]);
 
-  const loadRecipes = () => {
-    const loadedRecipes = localStorageHelper.getRecipes();
-    setRecipes(loadedRecipes);
+  const loadRecipes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await migrateFromLocalStorage();
+      const loadedRecipes = await fetchRecipes();
+      setRecipes(loadedRecipes);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible de charger les recettes');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterRecipes = () => {
@@ -69,35 +87,39 @@ export function RecipeLibrary() {
     setFilteredRecipes(filtered);
   };
 
-  const handleSaveRecipe = (recipeData: Omit<Recipe, 'id' | 'createdAt'>) => {
-    if (editingRecipe) {
-      const updatedRecipes = recipes.map((r) =>
-        r.id === editingRecipe.id
-          ? { ...recipeData, id: editingRecipe.id, createdAt: editingRecipe.createdAt }
-          : r
-      );
-      setRecipes(updatedRecipes);
-      localStorageHelper.saveRecipes(updatedRecipes);
-    } else {
-      const newRecipe: Recipe = {
-        ...recipeData,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-      };
-      const updatedRecipes = [...recipes, newRecipe];
-      setRecipes(updatedRecipes);
-      localStorageHelper.saveRecipes(updatedRecipes);
+  const handleSaveRecipe = async (recipeData: Omit<Recipe, 'id' | 'createdAt'>) => {
+    setSaving(true);
+    setError(null);
+    try {
+      if (editingRecipe) {
+        const updated = await updateRecipe(editingRecipe.id, recipeData);
+        setRecipes((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+        if (selectedRecipe?.id === updated.id) {
+          setSelectedRecipe(updated);
+        }
+      } else {
+        const created = await createRecipe(recipeData);
+        setRecipes((prev) => [created, ...prev]);
+      }
+      setShowForm(false);
+      setEditingRecipe(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible d’enregistrer la recette');
+    } finally {
+      setSaving(false);
     }
-    setShowForm(false);
-    setEditingRecipe(null);
   };
 
-  const handleDeleteRecipe = (id: string) => {
-    if (confirm('Voulez-vous vraiment supprimer cette recette ?')) {
-      const updatedRecipes = recipes.filter((r) => r.id !== id);
-      setRecipes(updatedRecipes);
-      localStorageHelper.saveRecipes(updatedRecipes);
+  const handleDeleteRecipe = async (id: string) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette recette ?')) return;
+
+    setError(null);
+    try {
+      await deleteRecipe(id);
+      setRecipes((prev) => prev.filter((r) => r.id !== id));
       setSelectedRecipe(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible de supprimer la recette');
     }
   };
 
@@ -115,6 +137,28 @@ export function RecipeLibrary() {
 
   const allTags = Array.from(new Set(recipes.flatMap((r) => r.tags)));
 
+  const errorBanner = error ? (
+    <div className="mb-4 flex items-start justify-between gap-4 border border-ember/30 bg-cream px-4 py-3 text-[15px] text-ink-soft">
+      <span>{error}</span>
+      <button
+        type="button"
+        onClick={() => setError(null)}
+        className="shrink-0 bg-transparent border-0 text-ink-soft cursor-pointer"
+        aria-label="Fermer"
+      >
+        ×
+      </button>
+    </div>
+  ) : null;
+
+  if (loading && recipes.length === 0) {
+    return (
+      <div className="bg-paper min-h-full flex items-center justify-center px-6">
+        <p className="text-muted text-lg italic">Chargement des recettes…</p>
+      </div>
+    );
+  }
+
   if (isMobile) {
     if (showForm) {
       return (
@@ -124,6 +168,7 @@ export function RecipeLibrary() {
             setEditingRecipe(null);
           }}
         >
+          {errorBanner}
           <RecipeForm
             recipe={editingRecipe || undefined}
             onSave={handleSaveRecipe}
@@ -131,6 +176,7 @@ export function RecipeLibrary() {
               setShowForm(false);
               setEditingRecipe(null);
             }}
+            saving={saving}
           />
         </RecipeFormMobile>
       );
@@ -153,6 +199,9 @@ export function RecipeLibrary() {
 
     return (
       <>
+        {errorBanner && (
+          <div className="px-5 pt-3">{errorBanner}</div>
+        )}
         <LibraryListMobile
           recipes={filteredRecipes}
           searchQuery={searchQuery}
@@ -179,6 +228,7 @@ export function RecipeLibrary() {
     return (
       <div className="bg-paper min-h-full">
         <div className="max-w-[740px] mx-auto px-11 py-10">
+          {errorBanner}
           <RecipeForm
             recipe={editingRecipe || undefined}
             onSave={handleSaveRecipe}
@@ -186,6 +236,7 @@ export function RecipeLibrary() {
               setShowForm(false);
               setEditingRecipe(null);
             }}
+            saving={saving}
           />
         </div>
       </div>
@@ -276,6 +327,7 @@ export function RecipeLibrary() {
   return (
     <div className="bg-paper min-h-full">
       <div className="px-[52px] py-[42px]">
+        {errorBanner}
         <div className="flex items-end justify-between mb-3.5">
           <div>
             <Kicker className="mb-2.5">Le carnet maison</Kicker>

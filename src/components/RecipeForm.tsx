@@ -12,12 +12,13 @@ interface RecipeFormProps {
   recipe?: Recipe;
   onSave: (recipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
   onCancel: () => void;
+  saving?: boolean;
 }
 
 const underlineInput =
   'flex-1 bg-transparent outline-none text-[17px] text-ink placeholder:text-muted placeholder:italic';
 
-export function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
+export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeFormProps) {
   const [title, setTitle] = useState(recipe?.title || '');
   const [image, setImage] = useState(recipe?.image || '');
   const [ingredients, setIngredients] = useState<IngredientLine[]>(() =>
@@ -288,8 +289,8 @@ export function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
       </div>
 
       <div className="flex flex-wrap gap-3.5 mt-8">
-        <Button type="submit" variant="solid">
-          Enregistrer
+        <Button type="submit" variant="solid" disabled={saving}>
+          {saving ? 'Enregistrement…' : 'Enregistrer'}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Annuler
