@@ -7,8 +7,9 @@ import { addRecipeToFirstEmptySlot } from '../lib/planning';
 import { Recipe } from '../types/recipe';
 import { Kicker, AssistantAvatar, Thumb } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
-import { MobileScreen, MobileTopBar } from '../components/ui/MobileShell';
+import { MobileScreen, MobileTopBar, MobileTabBar } from '../components/ui/MobileShell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { pathFromNavKey, TabKey } from '../lib/nav';
 
 const CHIPS = ['Planifier la semaine', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
 
@@ -214,6 +215,8 @@ export function ChatPage() {
     inputRef.current?.focus();
   };
 
+  const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
+
   const addToPlanning = (recipeId: string) => {
     if (!addRecipeToFirstEmptySlot(recipeId)) {
       navigate('/planning');
@@ -260,7 +263,7 @@ export function ChatPage() {
         compact ? 'px-4 pt-3' : '',
       ].join(' ')}
       style={
-        compact
+        compact && !isMobile
           ? { paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }
           : undefined
       }
@@ -366,8 +369,13 @@ export function ChatPage() {
     return (
       <MobileScreen
         scroll={false}
-        top={<MobileTopBar back title="Assistant" onBack={() => navigate('/')} />}
-        bottom={composer(true)}
+        top={<MobileTopBar title="Assistant" />}
+        bottom={
+          <>
+            {composer(true)}
+            <MobileTabBar active="assistant" onNavigate={handleNavTab} />
+          </>
+        }
       >
         <div className="flex flex-col flex-1 min-h-0">
           {errorBanner}

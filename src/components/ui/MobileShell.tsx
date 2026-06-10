@@ -49,6 +49,7 @@ export function MobileTabBar({
   onNavigate?: (key: TabKey) => void;
 }) {
   const tabs: [TabKey, string, IconName][] = [
+    ['assistant', 'Assistant', 'hat'],
     ['recettes', 'Recettes', 'book'],
     ['planning', 'Planning', 'calendar'],
     ['courses', 'Liste', 'cart'],

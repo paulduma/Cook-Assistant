@@ -12,6 +12,7 @@ export function TopNav({
   onHome?: () => void;
 }) {
   const items: [TabKey, string][] = [
+    ['assistant', 'Assistant'],
     ['recettes', 'Recettes'],
     ['planning', 'Planning'],
     ['courses', 'Liste de courses'],
