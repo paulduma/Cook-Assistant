@@ -11,16 +11,19 @@ type ModalRecipe = {
   time: string;
   portions: number;
   tag: string;
+  tags: string[];
   image_url?: string | null;
 };
 
 export function recipeToModalRecipe(recipe: Recipe): ModalRecipe {
+  const tags = recipe.tags.length > 0 ? recipe.tags : ['Recette'];
   return {
     id: recipe.id,
     title: recipe.title,
     time: `${recipe.cookingTime} min`,
     portions: recipe.servings,
-    tag: recipe.tags[0] ?? 'Recette',
+    tag: tags[0],
+    tags,
     image_url: recipe.image ?? null,
   };
 }
@@ -91,19 +94,24 @@ function PlanBody({
 }) {
   const [q, setQ] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const allTags = Array.from(new Set(recipes.map((r) => r.tag).filter(Boolean)));
+  const allTags = Array.from(new Set(recipes.flatMap((r) => r.tags)));
+
+  const toggleTag = (tag: string) => {
+    setSelectedTag((current) => (current === tag ? null : tag));
+  };
 
   const list = recipes.filter((r) => {
+    const query = q.toLowerCase();
     const matchesSearch =
-      r.title.toLowerCase().includes(q.toLowerCase()) ||
-      r.tag.toLowerCase().includes(q.toLowerCase());
-    const matchesTag = !selectedTag || r.tag === selectedTag;
+      r.title.toLowerCase().includes(query) ||
+      r.tags.some((tag) => tag.toLowerCase().includes(query));
+    const matchesTag = !selectedTag || r.tags.includes(selectedTag);
     return matchesSearch && matchesTag;
   });
 
   return (
     <>
-      <div className="px-7 pt-5">
+      <div className="px-7 pt-5 shrink-0">
         <div className="flex items-center gap-3 border-b-[1.5px] border-ink pb-2.5">
           <Icon name="search" size={18} strokeWidth={1.6} className="text-muted" />
           <input
@@ -115,11 +123,11 @@ function PlanBody({
           />
         </div>
         {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-5 mt-3.5">
+          <div className="-mx-7 px-7 flex gap-5 overflow-x-auto mt-3.5 pb-0.5 shrink-0">
             <button
               onClick={() => setSelectedTag(null)}
               className={[
-                'font-label text-[11.5px] uppercase tracking-wide cursor-pointer pb-1 bg-transparent border-0',
+                'font-label text-[11.5px] uppercase tracking-wide cursor-pointer pb-1 bg-transparent border-0 whitespace-nowrap shrink-0',
                 selectedTag === null
                   ? 'text-ink font-semibold border-b-[1.5px] border-ember'
                   : 'text-muted font-medium border-b-[1.5px] border-transparent',
@@ -130,9 +138,9 @@ function PlanBody({
             {allTags.map((tag) => (
               <button
                 key={tag}
-                onClick={() => setSelectedTag(tag)}
+                onClick={() => toggleTag(tag)}
                 className={[
-                  'font-label text-[11.5px] uppercase tracking-wide cursor-pointer pb-1 bg-transparent border-0',
+                  'font-label text-[11.5px] uppercase tracking-wide cursor-pointer pb-1 bg-transparent border-0 whitespace-nowrap shrink-0',
                   selectedTag === tag
                     ? 'text-ink font-semibold border-b-[1.5px] border-ember'
                     : 'text-muted font-medium border-b-[1.5px] border-transparent',
