@@ -15,6 +15,12 @@ Notes internes, idées pour la suite.
 - Remplacer le stockage local (localStorage) par Supabase
 - Persister les recettes, le planning et les listes de courses
 - Sync entre appareils
+- Plan détaillé : [SUPABASE_INTEGRATION.md](./SUPABASE_INTEGRATION.md)
+
+### Connecter OpenAI ou Gemini
+- Proposer des recettes nouvelles
+- Proposer des recettes de ma bibliothèque intelligemment
+- Importer des recettes depuis un lien (cf dernier point)
 
 ### Déploiement ou PWA
 - Choisir : déploiement web classique (Vercel, Netlify…) ou conversion en PWA installable sur mobile
