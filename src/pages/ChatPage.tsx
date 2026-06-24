@@ -1,15 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { chatWithOpenAI, isOpenAIConfigured, ChatMessage } from '../lib/openai';
-import { parseAssistantMessage } from '../lib/chatRecipes';
-import { fetchRecipes } from '../lib/recipes';
-import { addRecipeToFirstEmptySlot } from '../lib/planning';
+import { parseAssistantMessage, SuggestedRecipe, findRecipeByTitleLoose } from '../lib/chatRecipes';
+import { fetchRecipes, createRecipe, updateRecipe } from '../lib/recipes';
+import {
+  addRecipeToFirstEmptySlot,
+  applyWeekPlan,
+  findSuggestedByTitle,
+  resolveTitleToRecipeId,
+  weekPlanEntryToSlot,
+} from '../lib/planning';
+import {
+  deriveSessionFromMessages,
+  filterNewSuggestions,
+  countUnresolvedPlanTitles,
+  INITIAL_ASSISTANT_SESSION,
+} from '../lib/assistantSession';
+import { buildRuntimeContext, isAffirmativeMessage } from '../lib/assistantContext';
+import {
+  enrichAssistantResponse,
+  collectConversationSuggested,
+  findSuggestedInConversation,
+} from '../lib/assistantEnrichment';
 import { Recipe } from '../types/recipe';
 import { Kicker, AssistantAvatar, Thumb } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
 import { MobileScreen, MobileTopBar, MobileTabBar } from '../components/ui/MobileShell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pathFromNavKey, TabKey } from '../lib/nav';
+import { NewRecipeSuggestion } from '../components/assistant/NewRecipeSuggestion';
+import { WeekPlanValidation } from '../components/assistant/WeekPlanValidation';
+import { CookingSessionBar } from '../components/assistant/CookingSessionBar';
+import { RecipeUpdatePrompt } from '../components/assistant/RecipeUpdatePrompt';
 
 const CHIPS = ['Planifier la semaine', 'Je vais cuisiner', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
 
@@ -143,19 +165,57 @@ export function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [savedSuggestionTitles, setSavedSuggestionTitles] = useState<Map<string, string>>(
+    () => new Map()
+  );
+  const [appliedWeekPlanIndices, setAppliedWeekPlanIndices] = useState<Set<number>>(
+    () => new Set()
+  );
+  const [dismissedRecipeUpdates, setDismissedRecipeUpdates] = useState<Set<number>>(
+    () => new Set()
+  );
+  const [savedRecipeUpdateIndices, setSavedRecipeUpdateIndices] = useState<Set<number>>(
+    () => new Set()
+  );
+  const [savingSuggestionTitle, setSavingSuggestionTitle] = useState<string | null>(null);
+  const [applyingWeekPlanIndex, setApplyingWeekPlanIndex] = useState<number | null>(null);
+  const [savingRecipeUpdateIndex, setSavingRecipeUpdateIndex] = useState<number | null>(null);
+  const [cookingBarDismissed, setCookingBarDismissed] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasSentInitial = useRef(false);
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        setRecipes(await fetchRecipes());
-      } catch (err) {
-        console.warn('Failed to load recipes for chat:', err);
-      }
-    })();
+  const parseForSession = useCallback(
+    (content: string) => {
+      const parsed = parseAssistantMessage(content, recipes);
+      return {
+        activeCooking: parsed.activeCooking,
+        cookingStep: parsed.cookingStep,
+        weekPlan: parsed.weekPlan,
+      };
+    },
+    [recipes]
+  );
+
+  const session = useMemo(() => {
+    if (messages.length === 0) return INITIAL_ASSISTANT_SESSION;
+    return deriveSessionFromMessages(messages, parseForSession);
+  }, [messages, parseForSession]);
+
+  const showCookingBar = session.mode === 'cooking' && session.cooking && !cookingBarDismissed;
+
+  const refreshRecipes = useCallback(async () => {
+    try {
+      setRecipes(await fetchRecipes());
+    } catch (err) {
+      console.warn('Failed to load recipes for chat:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    void refreshRecipes();
+  }, [refreshRecipes]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -185,8 +245,58 @@ export function ChatPage() {
     setError(null);
 
     try {
-      const response = await chatWithOpenAI(updatedMessages, recipes);
-      setMessages((prev) => [...prev, { role: 'assistant', content: response }]);
+      let freshRecipes = recipes;
+      try {
+        freshRecipes = await fetchRecipes();
+        setRecipes(freshRecipes);
+      } catch (err) {
+        console.warn('Failed to refresh recipes before chat:', err);
+      }
+
+      if (freshRecipes.length === 0) {
+        setError(
+          'Carnet vide ou inaccessible. Vérifiez votre connexion Supabase avant de continuer.'
+        );
+      }
+
+      const runtimeContext = buildRuntimeContext(updatedMessages, freshRecipes);
+      const rawResponse = await chatWithOpenAI(updatedMessages, freshRecipes, runtimeContext);
+      const enrichedResponse = enrichAssistantResponse(
+        rawResponse,
+        trimmed,
+        updatedMessages,
+        freshRecipes
+      );
+
+      setMessages((prev) => [...prev, { role: 'assistant', content: enrichedResponse }]);
+
+      const parsed = parseAssistantMessage(enrichedResponse, freshRecipes);
+      if (isAffirmativeMessage(trimmed) && parsed.suggested.length > 0) {
+        const titleToId = new Map(savedSuggestionTitles);
+        for (const suggested of parsed.suggested) {
+          const norm = suggested.title.toLowerCase().trim();
+          if (titleToId.has(norm) || findRecipeByTitleLoose(suggested.title, freshRecipes)) {
+            continue;
+          }
+          try {
+            const created = await createRecipe({
+              title: suggested.title,
+              ingredients: suggested.ingredients,
+              steps: suggested.steps,
+              cookingTime: suggested.cookingTime,
+              servings: suggested.servings,
+              tags: suggested.tags,
+            });
+            titleToId.set(norm, created.id);
+          } catch (err) {
+            console.warn('Auto-save suggested recipe failed:', err);
+          }
+        }
+        if (titleToId.size > savedSuggestionTitles.size) {
+          setSavedSuggestionTitles(titleToId);
+          await refreshRecipes();
+        }
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Impossible d'obtenir une réponse de l'IA";
@@ -212,6 +322,11 @@ export function ChatPage() {
   const handleClear = () => {
     setMessages([]);
     setError(null);
+    setSavedSuggestionTitles(new Map());
+    setAppliedWeekPlanIndices(new Set());
+    setDismissedRecipeUpdates(new Set());
+    setSavedRecipeUpdateIndices(new Set());
+    setCookingBarDismissed(false);
     inputRef.current?.focus();
   };
 
@@ -227,21 +342,195 @@ export function ChatPage() {
     navigate('/recipes', { state: { openRecipeId: recipeId } });
   };
 
-  const renderAssistantMessage = (content: string, compact: boolean) => {
-    const { text, mentioned } = parseAssistantMessage(content, recipes);
+  const handleSaveSuggestion = async (suggested: SuggestedRecipe) => {
+    const norm = suggested.title.toLowerCase().trim();
+    if (savedSuggestionTitles.has(norm)) return;
+
+    setSavingSuggestionTitle(norm);
+    setError(null);
+
+    try {
+      const created = await createRecipe({
+        title: suggested.title,
+        ingredients: suggested.ingredients,
+        steps: suggested.steps,
+        cookingTime: suggested.cookingTime,
+        servings: suggested.servings,
+        tags: suggested.tags,
+      });
+      setSavedSuggestionTitles((prev) => {
+        const next = new Map(prev);
+        next.set(norm, created.id);
+        return next;
+      });
+      await refreshRecipes();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Impossible d'ajouter la recette au carnet";
+      setError(message);
+    } finally {
+      setSavingSuggestionTitle(null);
+    }
+  };
+
+  const handleValidateWeekPlan = async (
+    messageIndex: number,
+    content: string
+  ) => {
+    const parsed = parseAssistantMessage(content, recipes);
+    if (parsed.weekPlan.length === 0) return;
+
+    setApplyingWeekPlanIndex(messageIndex);
+    setError(null);
+
+    try {
+      const conversationSuggested = collectConversationSuggested(messages);
+      const allSuggested = [...parsed.suggested, ...conversationSuggested];
+      const titleToId = new Map(savedSuggestionTitles);
+      const slots = [];
+      const unresolved: string[] = [];
+
+      for (const entry of parsed.weekPlan) {
+        const mapped = weekPlanEntryToSlot(entry);
+        if (!mapped) continue;
+
+        let recipeId = resolveTitleToRecipeId(mapped.title, recipes, titleToId);
+
+        if (!recipeId) {
+          const suggested =
+            findSuggestedByTitle(mapped.title, allSuggested) ??
+            findSuggestedInConversation(mapped.title, messages);
+          if (suggested) {
+            const created = await createRecipe({
+              title: suggested.title,
+              ingredients: suggested.ingredients,
+              steps: suggested.steps,
+              cookingTime: suggested.cookingTime,
+              servings: suggested.servings,
+              tags: suggested.tags,
+            });
+            recipeId = created.id;
+            titleToId.set(mapped.title.toLowerCase().trim(), created.id);
+            titleToId.set(suggested.title.toLowerCase().trim(), created.id);
+          }
+        }
+
+        if (recipeId) {
+          slots.push({ day: mapped.day, meal: mapped.meal, recipeId });
+        } else {
+          unresolved.push(mapped.title);
+        }
+      }
+
+      if (slots.length === 0) {
+        setError(
+          unresolved.length > 0
+            ? `Impossible d'associer : ${unresolved.join(', ')}. Ajoutez-les au carnet puis réessayez.`
+            : "Aucun créneau du menu n'a pu être associé à une recette."
+        );
+        return;
+      }
+
+      const result = applyWeekPlan(slots);
+      setSavedSuggestionTitles(titleToId);
+      setAppliedWeekPlanIndices((prev) => new Set(prev).add(messageIndex));
+      await refreshRecipes();
+
+      if (unresolved.length > 0) {
+        setError(
+          `${result.applied} créneau(x) ajouté(s). Non résolus : ${unresolved.join(', ')}.`
+        );
+      } else if (result.skipped.length > 0) {
+        setError(
+          `${result.applied} créneau(x) ajouté(s), mais ${result.skipped.length} n'ont pas pu être remplis.`
+        );
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Impossible de remplir le planning';
+      setError(message);
+    } finally {
+      setApplyingWeekPlanIndex(null);
+    }
+  };
+
+  const handleSaveRecipeUpdate = async (messageIndex: number, content: string) => {
+    const { recipeUpdate } = parseAssistantMessage(content, recipes);
+    if (!recipeUpdate) return;
+
+    setSavingRecipeUpdateIndex(messageIndex);
+    setError(null);
+
+    try {
+      if (recipeUpdate.id) {
+        await updateRecipe(recipeUpdate.id, {
+          title: recipeUpdate.title,
+          ingredients: recipeUpdate.ingredients,
+          steps: recipeUpdate.steps,
+          cookingTime: recipeUpdate.cookingTime,
+          servings: recipeUpdate.servings,
+          tags: recipeUpdate.tags,
+        });
+      } else {
+        const created = await createRecipe({
+          title: recipeUpdate.title,
+          ingredients: recipeUpdate.ingredients,
+          steps: recipeUpdate.steps,
+          cookingTime: recipeUpdate.cookingTime,
+          servings: recipeUpdate.servings,
+          tags: recipeUpdate.tags,
+        });
+        setSavedSuggestionTitles((prev) => {
+          const next = new Map(prev);
+          next.set(recipeUpdate.title.toLowerCase().trim(), created.id);
+          return next;
+        });
+      }
+
+      setSavedRecipeUpdateIndices((prev) => new Set(prev).add(messageIndex));
+      await refreshRecipes();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Impossible d\'enregistrer la recette';
+      setError(message);
+    } finally {
+      setSavingRecipeUpdateIndex(null);
+    }
+  };
+
+  const renderAssistantMessage = (content: string, messageIndex: number, compact: boolean) => {
+    const parsed = parseAssistantMessage(content, recipes);
+    const isCookingMessage = Boolean(parsed.activeCooking || parsed.cookingStep);
+    const hideCarnetCards = session.mode === 'cooking' && isCookingMessage;
+
+    const newSuggestions = filterNewSuggestions(
+      [...parsed.suggested, ...collectConversationSuggested(messages.slice(0, messageIndex + 1))],
+      recipes,
+      new Set(savedSuggestionTitles.keys())
+    );
+
+    const conversationSuggested = collectConversationSuggested(messages.slice(0, messageIndex + 1));
+    const newRecipeCount = countUnresolvedPlanTitles(
+      parsed.weekPlan,
+      recipes,
+      [...parsed.suggested, ...conversationSuggested],
+      savedSuggestionTitles
+    );
+
     return (
       <AssistantRow compact={compact}>
         <p className="text-[16px] md:text-[17.5px] text-ink-soft leading-[1.55] m-0 whitespace-pre-wrap mb-0">
-          {text}
+          {parsed.text}
         </p>
-        {mentioned.length > 0 && (
+
+        {!hideCarnetCards && parsed.mentioned.length > 0 && (
           <div
             className={[
               'mt-4',
               compact ? 'flex flex-col' : 'flex gap-3.5 flex-wrap md:flex-nowrap',
             ].join(' ')}
           >
-            {mentioned.map((recipe) => (
+            {parsed.mentioned.map((recipe) => (
               <RecipeSuggestion
                 key={recipe.id}
                 recipe={recipe}
@@ -252,6 +541,55 @@ export function ChatPage() {
             ))}
           </div>
         )}
+
+        {newSuggestions.length > 0 && (
+          <div
+            className={[
+              compact ? 'flex flex-col' : 'flex gap-3.5 flex-wrap md:flex-nowrap',
+            ].join(' ')}
+          >
+            {newSuggestions.map((suggested) => {
+              const norm = suggested.title.toLowerCase().trim();
+              const isSaved = savedSuggestionTitles.has(norm);
+              return (
+                <NewRecipeSuggestion
+                  key={suggested.title}
+                  recipe={suggested}
+                  compact={compact}
+                  isSaved={isSaved}
+                  isSaving={savingSuggestionTitle === norm}
+                  onSave={() => void handleSaveSuggestion(suggested)}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {parsed.weekPlan.length > 0 && (
+          <WeekPlanValidation
+            entries={parsed.weekPlan}
+            newRecipeCount={newRecipeCount}
+            compact={compact}
+            isApplying={applyingWeekPlanIndex === messageIndex}
+            isApplied={appliedWeekPlanIndices.has(messageIndex)}
+            onValidate={() => void handleValidateWeekPlan(messageIndex, content)}
+            onOpenPlanning={() => navigate('/planning')}
+          />
+        )}
+
+        {parsed.recipeUpdate &&
+          !dismissedRecipeUpdates.has(messageIndex) && (
+            <RecipeUpdatePrompt
+              payload={parsed.recipeUpdate}
+              compact={compact}
+              isSaving={savingRecipeUpdateIndex === messageIndex}
+              isSaved={savedRecipeUpdateIndices.has(messageIndex)}
+              onSave={() => void handleSaveRecipeUpdate(messageIndex, content)}
+              onDismiss={() =>
+                setDismissedRecipeUpdates((prev) => new Set(prev).add(messageIndex))
+              }
+            />
+          )}
       </AssistantRow>
     );
   };
@@ -325,6 +663,16 @@ export function ChatPage() {
     </div>
   );
 
+  const cookingBar = showCookingBar && session.cooking && (
+    <CookingSessionBar
+      title={session.cooking.title}
+      currentStep={session.cooking.step}
+      totalSteps={session.cooking.totalSteps}
+      isNewRecipe={session.cooking.recipeId === null}
+      onEnd={() => setCookingBarDismissed(true)}
+    />
+  );
+
   const messageFeed = (compact: boolean) => (
     <div
       className={[
@@ -339,7 +687,7 @@ export function ChatPage() {
           message.role === 'user' ? (
             <UserBubble key={index}>{message.content}</UserBubble>
           ) : (
-            <div key={index}>{renderAssistantMessage(message.content, compact)}</div>
+            <div key={index}>{renderAssistantMessage(message.content, index, compact)}</div>
           )
         )}
 
@@ -378,6 +726,7 @@ export function ChatPage() {
         }
       >
         <div className="flex flex-col flex-1 min-h-0">
+          {cookingBar}
           {errorBanner}
           {messageFeed(true)}
         </div>
@@ -387,6 +736,7 @@ export function ChatPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-86px)] bg-paper text-ink font-body antialiased">
+      {cookingBar}
       {errorBanner}
       {messageFeed(false)}
       {composer(false)}

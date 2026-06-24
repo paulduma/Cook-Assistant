@@ -29,8 +29,9 @@ The assistant picks the mode from what you say. Quick-start chips on the chat sc
 Helps you compose and validate a weekly menu.
 
 - Understands your constraints (time, diet, ingredients to use, number of meals)
-- Proposes a **mix of saved recipes + new ideas** (~40–70% from your carnet when it is not empty)
-- Iterates on your feedback (swap a dish, simplify a day, etc.)
+- **Asks questions** if you haven't given clear direction yet
+- **Surfaces 5–6 matching ideas from your carnet** once intent is clear, then iterates with you
+- Adds **new recipes only when the carnet doesn't cover** what you want
 - On validation (*c'est bon*, *valide*), outputs a structured week plan ready to prefill the meal planner
 
 ### Mode 2 — Live cooking
@@ -51,11 +52,14 @@ Guides you step by step while you cook a named dish.
 | Recipe cards from your library | ✅ |
 | Add one recipe to planning manually | ✅ |
 | Step-by-step cooking in chat | ✅ |
-| Save new recipes from chat | ⏳ prompt ready, UI pending |
-| Prefill week planning on validation | ⏳ prompt ready, UI pending |
-| Update recipe after cooking | ⏳ prompt ready, UI pending |
+| Save new recipes from chat | ✅ |
+| Prefill week planning on validation | ✅ |
+| Update recipe after cooking | ✅ |
+| Cooking session progress bar | ✅ |
 
 Prompt and structured output parsing live in `src/lib/openai.ts` and `src/lib/chatRecipes.ts`.
+
+Full product spec: [doc/ASSISTANT_PRD.md](./doc/ASSISTANT_PRD.md).
 
 ---
 
@@ -102,13 +106,10 @@ VITE_OPENAI_API_KEY=<your-openai-api-key>
 
 ## Work in Progress and Next steps
 
-**Assistant UX wiring**
-- Save new recipes from chat (`NOUVELLES_RECETTES_JSON` → Supabase)
-- Prefill meal planner on week validation (`PLAN_SEMAINE`)
-- Update recipe after a cooking session (`MAJ_RECETTE_JSON`)
-- Show step progress during live cooking (`ETAPE_CUISSON`)
+**Assistant — M2 (router + skills + tools)**
+- Intent router and focused skill prompts
+- Real DB tool calls instead of prompt-only lookup
 
 **Other**
-- Refine chat UI (new-recipe cards, validation flows)
 - Refine meal planner UI / UX: easily add recipes (popup, search, simple filters)
 - Import recipes from a URL (Instagram, TikTok, etc.)

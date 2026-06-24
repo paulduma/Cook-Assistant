@@ -1,4 +1,5 @@
 import { Recipe } from '../types/recipe';
+import { findBestRecipeMatch, normalizeText } from './recipeSearch';
 
 const RECETTES_LINE = /^RECETTES:\s*(.+)$/im;
 const NOUVELLES_LINE = /^NOUVELLES_RECETTES_JSON:\s*(.+)$/im;
@@ -59,21 +60,11 @@ function stripStructuredLines(content: string): string {
 }
 
 export function matchRecipeByTitle(title: string, recipes: Recipe[]): Recipe | undefined {
-  const norm = title.toLowerCase().trim();
-  return recipes.find((r) => r.title.toLowerCase().trim() === norm);
+  return findBestRecipeMatch(title, recipes);
 }
 
 export function findRecipeByTitleLoose(query: string, recipes: Recipe[]): Recipe | undefined {
-  const norm = query.toLowerCase().trim();
-  if (!norm) return undefined;
-
-  const exact = matchRecipeByTitle(query, recipes);
-  if (exact) return exact;
-
-  return recipes.find((r) => {
-    const title = r.title.toLowerCase().trim();
-    return title.includes(norm) || norm.includes(title);
-  });
+  return findBestRecipeMatch(query, recipes);
 }
 
 export function findMentionedRecipes(content: string, recipes: Recipe[]): Recipe[] {
@@ -84,7 +75,7 @@ export function findMentionedRecipes(content: string, recipes: Recipe[]): Recipe
       const title = r.title.toLowerCase().trim();
       return title.length > 2 && lower.includes(title);
     })
-    .slice(0, 7);
+    .slice(0, 6);
 }
 
 function parseSuggestedRecipes(content: string): SuggestedRecipe[] {
@@ -105,10 +96,37 @@ function parseSuggestedRecipes(content: string): SuggestedRecipe[] {
           typeof item.servings === 'number' &&
           Array.isArray(item.tags)
       )
-      .slice(0, 7);
+      .slice(0, 6);
   } catch {
     return [];
   }
+}
+
+function normalizePlanDay(raw: string): string {
+  const day = normalizeText(raw);
+  const aliases: Record<string, string> = {
+    lundi: 'lun',
+    mardi: 'mar',
+    mercredi: 'mer',
+    jeudi: 'jeu',
+    vendredi: 'ven',
+    samedi: 'sam',
+    dimanche: 'dim',
+  };
+  return aliases[day] ?? day.slice(0, 3);
+}
+
+function normalizePlanMeal(raw: string): string {
+  const meal = normalizeText(raw);
+  const aliases: Record<string, string> = {
+    'petit dejeuner': 'petit-dejeuner',
+    petitdejeuner: 'petit-dejeuner',
+    breakfast: 'petit-dejeuner',
+    lunch: 'dejeuner',
+    dinner: 'diner',
+    souper: 'diner',
+  };
+  return aliases[meal] ?? meal;
 }
 
 function parseWeekPlan(content: string): WeekPlanEntry[] {
@@ -122,8 +140,12 @@ function parseWeekPlan(content: string): WeekPlanEntry[] {
     .map((slot) => {
       const [key, ...titleParts] = slot.split(':');
       const title = titleParts.join(':').trim();
-      const [day = '', meal = ''] = key.split('-');
-      return { day: day.trim(), meal: meal.trim(), title };
+      const [dayRaw = '', mealRaw = ''] = key.split(/[-–]/).map((part) => part.trim());
+      return {
+        day: normalizePlanDay(dayRaw),
+        meal: normalizePlanMeal(mealRaw),
+        title,
+      };
     })
     .filter((entry) => entry.day && entry.meal && entry.title);
 }
@@ -217,7 +239,7 @@ export function parseAssistantMessage(
     const mentioned: Recipe[] = [];
 
     for (const title of titles) {
-      const recipe = matchRecipeByTitle(title, recipes);
+      const recipe = findRecipeByTitleLoose(title, recipes);
       if (recipe && !mentioned.some((m) => m.id === recipe.id)) {
         mentioned.push(recipe);
       }
@@ -225,7 +247,7 @@ export function parseAssistantMessage(
 
     return {
       text,
-      mentioned: mentioned.slice(0, 7),
+      mentioned: mentioned.slice(0, 6),
       suggested,
       weekPlan,
       activeCooking,
