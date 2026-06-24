@@ -10,13 +10,52 @@ Create a **personal cooking assistant** that helps save time in everyday life by
 
 The app combines four simple modules:
 
-1. **Chat Assistant** – Ask for inspiration to an LLM that can query into my saved recipes or suggest new ones (from web search)
+1. **Chat Assistant** – Conversational AI with two modes (see below), backed by your Supabase recipe carnet
 2. **Recipe Library** – Store and edit your favorite recipes
 3. **Meal Planner** – Plan the week with drag-and-drop recipes, or from assistant automation
 4. **Grocery List** – Auto-generate a grouped shopping list from your planned meals
 
-All data is stored locally using Supabase (no accounts needed).
-The AI assistant uses an LLM to find, summarize, and suggest recipes that fit your preferences.
+All data is stored in Supabase (no accounts needed).
+The AI assistant uses OpenAI to read your carnet, suggest recipes, plan your week, and guide you while cooking.
+
+---
+
+## 🤖 Chat Assistant — two modes
+
+The assistant picks the mode from what you say. Quick-start chips on the chat screen include *Planifier la semaine* and *Je vais cuisiner*.
+
+### Mode 1 — Week planning
+
+Helps you compose and validate a weekly menu.
+
+- Understands your constraints (time, diet, ingredients to use, number of meals)
+- Proposes a **mix of saved recipes + new ideas** (~40–70% from your carnet when it is not empty)
+- Iterates on your feedback (swap a dish, simplify a day, etc.)
+- On validation (*c'est bon*, *valide*), outputs a structured week plan ready to prefill the meal planner
+
+### Mode 2 — Live cooking
+
+Guides you step by step while you cook a named dish.
+
+- **Looks up your carnet first** by recipe name (exact or close match)
+- **If found:** confirms the recipe, recaps ingredients, then walks you through **one step per message**
+- **If not found:** proposes a full new recipe, waits for your OK, then guides you the same way
+- Adapts on the fly (substitutions, missing ingredients, timing, portions)
+- At the end, if you changed the recipe, asks whether to **save or update** it in your carnet
+
+### Wired today vs. next
+
+| Capability | Status |
+|------------|--------|
+| Chat + carnet context | ✅ |
+| Recipe cards from your library | ✅ |
+| Add one recipe to planning manually | ✅ |
+| Step-by-step cooking in chat | ✅ |
+| Save new recipes from chat | ⏳ prompt ready, UI pending |
+| Prefill week planning on validation | ⏳ prompt ready, UI pending |
+| Update recipe after cooking | ⏳ prompt ready, UI pending |
+
+Prompt and structured output parsing live in `src/lib/openai.ts` and `src/lib/chatRecipes.ts`.
 
 ---
 
@@ -62,10 +101,14 @@ VITE_OPENAI_API_KEY=<your-openai-api-key>
 ---
 
 ## Work in Progress and Next steps
-- Refine LLM instructions
-- Refine LLM front / UI
-- Add tools to LLM
-    - use database of recipes
-    - write in recipes (add or modify recipes)
-    - write in meal planner (add it somewhere)
-- Refine meal planner UI / UX : must easily add recipes (pop up, not extra page, whith search query and simple filters)
+
+**Assistant UX wiring**
+- Save new recipes from chat (`NOUVELLES_RECETTES_JSON` → Supabase)
+- Prefill meal planner on week validation (`PLAN_SEMAINE`)
+- Update recipe after a cooking session (`MAJ_RECETTE_JSON`)
+- Show step progress during live cooking (`ETAPE_CUISSON`)
+
+**Other**
+- Refine chat UI (new-recipe cards, validation flows)
+- Refine meal planner UI / UX: easily add recipes (popup, search, simple filters)
+- Import recipes from a URL (Instagram, TikTok, etc.)

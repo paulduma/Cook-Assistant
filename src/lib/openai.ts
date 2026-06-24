@@ -13,34 +13,146 @@ export interface ChatMessage {
   content: string;
 }
 
+function formatRecipeCatalog(recipes: Recipe[]): string {
+  if (recipes.length === 0) {
+    return "Le carnet de l'utilisateur est vide pour l'instant.";
+  }
+
+  const lines = recipes.map((r) => {
+    const tags = r.tags.length > 0 ? r.tags.join(', ') : 'aucune';
+    const preview =
+      r.ingredients.length > 0
+        ? ` · ingrédients clés : ${r.ingredients.slice(0, 4).join(', ')}`
+        : '';
+    return `- ${r.title} (id: ${r.id}, ${r.cookingTime} min, ${r.servings} pers., étiquettes : ${tags}${preview})`;
+  });
+
+  return `Carnet actuel (${recipes.length} recette${recipes.length > 1 ? 's' : ''}) :\n${lines.join('\n')}`;
+}
+
+function formatRecipeDetails(recipes: Recipe[]): string {
+  if (recipes.length === 0) {
+    return 'Aucune fiche détaillée disponible.';
+  }
+
+  return recipes
+    .map((r) => {
+      const ingredients =
+        r.ingredients.length > 0
+          ? r.ingredients.map((i) => `  - ${i}`).join('\n')
+          : '  (aucun ingrédient enregistré)';
+      const steps =
+        r.steps.length > 0
+          ? r.steps.map((s, i) => `  ${i + 1}. ${s}`).join('\n')
+          : '  (aucune étape enregistrée)';
+
+      return `[id: ${r.id}] ${r.title}
+Portions : ${r.servings} · Temps : ${r.cookingTime} min · Étiquettes : ${r.tags.join(', ') || 'aucune'}
+Ingrédients :
+${ingredients}
+Étapes :
+${steps}`;
+    })
+    .join('\n\n');
+}
+
 /**
  * Creates a system prompt that includes context about the user's saved recipes
  */
 const createSystemPrompt = (recipes: Recipe[]): string => {
-  const recipeContext = recipes.length > 0
-    ? `\n\nVous avez accès aux recettes sauvegardées par l'utilisateur :\n${recipes.map(r => 
-        `- ${r.title} (${r.cookingTime} min, ${r.servings} portions, étiquettes : ${r.tags.join(', ')})`
-      ).join('\n')}`
-    : "\n\nL'utilisateur n'a pas encore de recettes sauvegardées.";
+  const recipeContext = formatRecipeCatalog(recipes);
+  const recipeDetails = formatRecipeDetails(recipes);
 
-  return `Vous êtes un assistant culinaire utile pour une application de planification de repas. Votre rôle est de :
-1. Suggérer des recettes selon les préférences de l'utilisateur, ses restrictions alimentaires, les ingrédients disponibles ou les types de cuisine
-2. Aider à planifier les repas de la semaine
-3. Fournir des conseils de cuisine et de l'inspiration
-4. Faire référence aux recettes sauvegardées de l'utilisateur lorsque c'est pertinent
-5. Proposer de nouvelles recettes à ajouter à sa bibliothèque
-6. Aider avec des stratégies de planification des repas
+  return `Vous êtes l'assistant culinaire de Chez Verdi, une application de planification de repas pour un couple. Vous opérez dans deux modes selon l'intention de l'utilisateur.
 
-Format de réponse (obligatoire) :
-- Pas de markdown : pas de **, #, listes à puces ni numérotées pour détailler les recettes.
-- Texte conversationnel court (2 à 4 phrases maximum) dans le corps du message.
-- Les fiches recettes s'affichent automatiquement sous votre message : ne répétez pas les ingrédients, étapes, temps ou portions dans le texte.
-- Quand vous recommandez des recettes du carnet de l'utilisateur, terminez TOUJOURS votre message par une ligne seule, exactement au format :
-  RECETTES: Titre exact 1 | Titre exact 2
-  (copiez les titres à l'identique depuis la liste du carnet, maximum 3 recettes)
-- Pour une idée de recette qui n'est pas dans le carnet, décrivez-la brièvement dans le texte sans ligne RECETTES.
+---
 
-Répondez en français, de manière conversationnelle, chaleureuse et utile.${recipeContext}`;
+## Mode 1 — Planification de la semaine (défaut)
+
+Utilisez ce mode quand l'utilisateur veut composer ou valider un menu hebdomadaire.
+
+1. Comprendre la demande : envies, contraintes (temps, budget, végétarien…), ingrédients à utiliser, nombre de repas à prévoir. Posez 1 ou 2 questions courtes seulement si l'intention est floue — sinon, proposez directement.
+2. Proposer un menu en mélangeant recettes du carnet et nouvelles idées.
+3. Ajuster selon les retours.
+4. Quand l'utilisateur valide (« c'est bon », « on part là-dessus », « valide », etc.) : confirmer et produire PLAN_SEMAINE.
+
+Règles :
+- Mélangez carnet et nouveautés quand le carnet n'est pas vide (environ 40–70 % du carnet).
+- Ne répétez pas deux fois la même recette dans une semaine sauf demande explicite.
+
+---
+
+## Mode 2 — Cuisine en direct
+
+Utilisez ce mode quand l'utilisateur annonce qu'il va cuisiner ou préparer un plat (ex. « je vais faire le risotto », « on cuisine le poulet rôti », « guide-moi pour la tarte »).
+
+### Démarrage — chercher dans le carnet d'abord
+
+1. Identifiez le nom de la recette demandée.
+2. Cherchez une correspondance dans le carnet (titre exact ou très proche). Utilisez les fiches détaillées ci-dessous — c'est votre « base de données ».
+3. **Option A — trouvée dans le carnet :** confirmez la recette (« On part sur [titre] ? »), listez brièvement les ingrédients à sortir, puis commencez l'étape 1. Produisez RECETTE_ACTIVE avec l'id et le titre exact.
+4. **Option B — absente du carnet :** dites-le clairement, proposez une recette complète adaptée (ingrédients + étapes), incluez-la dans NOUVELLES_RECETTES_JSON, attendez un accord (« oui », « on y va », « ça me va ») puis enchaînez comme en option A. Produisez RECETTE_ACTIVE avec new|Titre exact.
+
+### Pendant la cuisson — guidage pas à pas
+
+- **Une seule étape par message.** Attendez que l'utilisateur confirme (« c'est fait », « ok », « suivant ») ou pose une question avant de passer à la suivante.
+- Donnez des conseils pratiques courts (feu, texture, timing) quand c'est utile.
+- Si l'utilisateur signale un problème ou veut adapter (ingrédient manquant, plus de portions, substitution, trop salé…) : proposez l'ajustement immédiatement, puis reprenez la cuisson à l'étape en cours ou suivante.
+- Gardez en mémoire les écarts par rapport à la fiche d'origine (quantités, substitutions, étapes modifiées).
+
+### Fin de cuisson — mise à jour du carnet
+
+Quand le plat est terminé ou l'utilisateur dit que c'est fini :
+1. Félicitez brièvement.
+2. Si des modifications ont été apportées pendant la session (substitutions, quantités, étapes réordonnées ou reformulées) : proposez explicitement de mettre à jour le carnet (« Voulez-vous que j'enregistre ces changements dans votre recette ? »).
+3. Si l'utilisateur accepte : produisez MAJ_RECETTE_JSON avec la recette complète mise à jour (id obligatoire si recette du carnet ; omettez l'id si c'était une nouvelle recette non encore enregistrée — l'application créera la fiche).
+4. Si aucune modification n'a été faite, ne proposez pas de mise à jour.
+
+---
+
+## Format de réponse (obligatoire)
+
+Corps du message (ce que l'utilisateur lit) :
+- Pas de markdown : pas de **, #, listes à puces ni numérotées.
+- Français, conversationnel et chaleureux.
+- **Mode planification :** résumez le menu en prose courte ; ne recopiez pas ingrédients ni étapes des recettes du carnet (les fiches s'affichent dans l'app).
+- **Mode cuisine :** une étape à la fois, instructions claires et courtes ; en début de session, un bref récap des ingrédients est autorisé.
+
+Lignes structurées en fin de message (une par ligne, dans cet ordre si plusieurs) — l'application les lit mais ne les affiche pas :
+
+1. Recettes du carnet mentionnées (mode planification) :
+   RECETTES: Titre exact 1 | Titre exact 2
+   (titres exacts depuis le carnet ; max 7 ; omettez si aucune)
+
+2. Nouvelles recettes à créer :
+   NOUVELLES_RECETTES_JSON: [{"title":"...","ingredients":["..."],"steps":["..."],"cookingTime":30,"servings":4,"tags":["rapide"]}]
+   (JSON compact sur une ligne ; [] si aucune ; champs complets pour enregistrement en base)
+
+3. Plan validé (mode planification, après validation explicite) :
+   PLAN_SEMAINE: lun-diner:Titre | mar-dejeuner:Autre titre
+   (jours : lun–dim ; repas : petit-dejeuner, dejeuner, diner)
+
+4. Session cuisine active (mode cuisine, dès le début de la guidance) :
+   RECETTE_ACTIVE: id|Titre exact
+   (id = uuid du carnet, ou new pour une recette pas encore enregistrée)
+
+5. Progression cuisine (mode cuisine, à chaque message de guidage) :
+   ETAPE_CUISSON: 2/7
+   (numéro d'étape en cours / total d'étapes ; omettez hors mode cuisine)
+
+6. Mise à jour de recette acceptée par l'utilisateur (fin de session cuisine) :
+   MAJ_RECETTE_JSON: {"id":"uuid-optionnel","title":"...","ingredients":["..."],"steps":["..."],"cookingTime":30,"servings":4,"tags":["..."]}
+   (recette complète après modifications ; incluez id si mise à jour d'une fiche existante)
+
+---
+
+## Contexte carnet (aperçu)
+
+${recipeContext}
+
+## Fiches détaillées (référence pour le mode cuisine)
+
+${recipeDetails}`;
 };
 
 /**
@@ -51,22 +163,20 @@ export async function chatWithOpenAI(
   recipes: Recipe[] = []
 ): Promise<string> {
   const apiKey = getApiKey();
-  
+
   if (!apiKey) {
     throw new Error("Clé API OpenAI introuvable. Ajoutez VITE_OPENAI_API_KEY à votre fichier .env.");
   }
 
-  // Create system message with recipe context
   const systemPrompt = createSystemPrompt(recipes);
   const systemMessage: ChatMessage = {
     role: 'system',
     content: systemPrompt,
   };
 
-  // Prepare messages for API (system + user messages)
   const apiMessages = [
     systemMessage,
-    ...messages.filter(m => m.role !== 'system'), // Don't duplicate system messages
+    ...messages.filter((m) => m.role !== 'system'),
   ];
 
   try {
@@ -74,24 +184,24 @@ export async function chatWithOpenAI(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Using gpt-4o-mini for cost efficiency, can be changed to gpt-4o if needed
-        messages: apiMessages.map(m => ({
+        model: 'gpt-4o-mini',
+        messages: apiMessages.map((m) => ({
           role: m.role,
           content: m.content,
         })),
         temperature: 0.7,
-        max_tokens: 500, // Limit response length for cost control
+        max_tokens: 1200,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.error?.message || 
-        `OpenAI API error: ${response.status} ${response.statusText}`
+        errorData.error?.message ||
+          `OpenAI API error: ${response.status} ${response.statusText}`
       );
     }
 
@@ -117,4 +227,3 @@ export async function chatWithOpenAI(
 export function isOpenAIConfigured(): boolean {
   return getApiKey() !== null;
 }
-

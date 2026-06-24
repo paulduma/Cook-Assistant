@@ -11,7 +11,7 @@ import { MobileScreen, MobileTopBar, MobileTabBar } from '../components/ui/Mobil
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pathFromNavKey, TabKey } from '../lib/nav';
 
-const CHIPS = ['Planifier la semaine', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
+const CHIPS = ['Planifier la semaine', 'Je vais cuisiner', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
 
 function UserBubble({ children }: { children: React.ReactNode }) {
   return (
@@ -114,8 +114,8 @@ function WelcomeScreen({ onChipClick }: { onChipClick: (text: string) => void })
   return (
     <AssistantRow>
       <p className="text-[16px] md:text-[17.5px] text-ink-soft leading-[1.55] m-0">
-        Bonsoir vous deux&nbsp;! Dites-moi ce qui vous ferait plaisir cette semaine — une envie,
-        un ingrédient à finir, un budget — et je compose le planning avec vos recettes.
+        Bonsoir vous deux&nbsp;! Je peux composer votre semaine ou vous guider pas à pas pendant
+        que vous cuisinez — dites-moi ce que vous avez envie de faire.
       </p>
       <div className="flex flex-wrap gap-2 md:gap-2.5 mt-3 md:mt-4">
         {CHIPS.map((c) => (
@@ -318,7 +318,7 @@ export function ChatPage() {
         </form>
         {!compact && (
           <div className="font-label text-[10.5px] uppercase tracking-wide text-muted text-center mt-3">
-            L'assistant propose des recettes de votre carnet · vous gardez la main
+            L'assistant compose votre semaine · carnet + nouvelles idées · vous validez
           </div>
         )}
       </div>

@@ -12,11 +12,31 @@ Notes internes, idées pour la suite.
 - Sync entre appareils  
 - Plan détaillé : [SUPABASE_INTEGRATION.md](./SUPABASE_INTEGRATION.md)
 
-### Connecter OpenAI ou Gemini
-Bien gérer le prompt et les instructions, et gérer les fonctionnalités suivantes
-- Proposer des recettes nouvelles
-- Proposer des recettes de ma bibliothèque intelligemment
-- Importer des recettes depuis un lien (cf dernier point)
+### Assistant IA (OpenAI)
+
+**Fait — prompt & parsing** (`src/lib/openai.ts`, `src/lib/chatRecipes.ts`)
+
+- **Mode planification** : comprendre la demande, mélanger carnet + nouvelles idées, itérer, produire `PLAN_SEMAINE` à la validation
+- **Mode cuisine** : chercher dans le carnet, guider pas à pas, adapter en cours de route, proposer mise à jour via `MAJ_RECETTE_JSON`
+- Contexte carnet complet (aperçu + fiches détaillées) injecté à chaque requête
+- Lignes structurées parsées : `RECETTES`, `NOUVELLES_RECETTES_JSON`, `PLAN_SEMAINE`, `RECETTE_ACTIVE`, `ETAPE_CUISSON`, `MAJ_RECETTE_JSON`
+
+**Fait — UI chat**
+
+- Conversation, chips d'amorçage, fiches recettes du carnet, bouton *Au planning*
+
+**À faire — câblage UX / backend**
+
+- [ ] Afficher les nouvelles recettes suggérées + bouton *Ajouter au carnet* (`NOUVELLES_RECETTES_JSON` → `createRecipe`)
+- [ ] Bouton *Valider le menu* → préremplir le planning (`PLAN_SEMAINE` → meal planner)
+- [ ] Indicateur de progression en cuisine (`ETAPE_CUISSON`)
+- [ ] Sauvegarder / mettre à jour une recette après session cuisine (`MAJ_RECETTE_JSON` → `createRecipe` / `updateRecipe`)
+
+**Plus tard**
+
+- Import de recettes depuis un lien (Instagram, TikTok, URL)
+- Liste de courses intelligente générée depuis le chat (fusion des ingrédients)
+- Alternative Gemini
 
 ### Refine UX -> Done: next steps = navigation & small UX changes + real test on mobile planned at the end
 - Peaufiner le chat assistant (full-page)
