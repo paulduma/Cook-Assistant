@@ -112,7 +112,7 @@ export function Home() {
                 key={num}
                 type="button"
                 onClick={() => navigate(path)}
-                className="flex gap-3.5 py-[15px] border-b border-line-soft w-full text-left bg-transparent border-x-0 border-t-0 cursor-pointer"
+                className="flex gap-3.5 pt-5 pb-[15px] border-b border-line-soft w-full text-left bg-transparent border-x-0 border-t-0 cursor-pointer"
               >
                 <div className="font-display text-[22px] text-ember w-[30px] shrink-0">{num}</div>
                 <div>
@@ -152,7 +152,7 @@ export function Home() {
               type="button"
               onClick={() => navigate(path)}
               className={[
-                'text-left px-[30px] bg-transparent border-0 cursor-pointer hover:bg-cream/60 transition-colors',
+                'text-left px-[30px] pt-6 bg-transparent border-0 cursor-pointer hover:bg-cream/60 transition-colors',
                 i < 2 ? 'border-r border-line' : '',
               ].join(' ')}
             >

@@ -6,15 +6,10 @@ Notes internes, idées pour la suite.
 
 ## À faire
 
-### Refine UX -> Done: next steps = navigation & small UX changes + real test on mobile planned at the end
-- Peaufiner le chat assistant (full-page)
-- Améliorer les parcours recettes / planning / liste de courses
-- Revoir la navigation et les flows clés
-
 ### Connecter Supabase
 - Remplacer le stockage local (localStorage) par Supabase
 - Persister les recettes, le planning et les listes de courses
-- Sync entre appareils
+- Sync entre appareils  
 - Plan détaillé : [SUPABASE_INTEGRATION.md](./SUPABASE_INTEGRATION.md)
 
 ### Connecter OpenAI ou Gemini
@@ -22,6 +17,11 @@ Bien gérer le prompt et les instructions, et gérer les fonctionnalités suivan
 - Proposer des recettes nouvelles
 - Proposer des recettes de ma bibliothèque intelligemment
 - Importer des recettes depuis un lien (cf dernier point)
+
+### Refine UX -> Done: next steps = navigation & small UX changes + real test on mobile planned at the end
+- Peaufiner le chat assistant (full-page)
+- Améliorer les parcours recettes / planning / liste de courses
+- Revoir la navigation et les flows clés
 
 ### Déploiement ou PWA
 - Choisir : déploiement web classique (Vercel, Netlify…) ou conversion en PWA installable sur mobile
