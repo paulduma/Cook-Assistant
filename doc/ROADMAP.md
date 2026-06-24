@@ -44,10 +44,15 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 - Peaufiner le chat assistant (full-page)
 - Améliorer les parcours recettes / planning / liste de courses
 - Revoir la navigation et les flows clés
+Notamment 
+1 - le planning, pas génial
+2 - l'aggrégation des ingrédients dans la liste de course
+3 - l'import de recettes
 
 ### Déploiement ou PWA
 - Choisir : déploiement web classique (Vercel, Netlify…) ou conversion en PWA installable sur mobile
 - Configurer le déploiement une fois la décision prise
+- Faire aussi la doc et le rendre partageable facilement
 
 ### Import de recettes depuis un lien
 - Importer une recette depuis Instagram, TikTok ou n'importe quelle URL
