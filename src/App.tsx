@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AppAccessGate } from './components/AppAccessGate';
 import { AppLayout } from './components/AppLayout';
 import { Home } from './pages/Home';
@@ -21,6 +22,7 @@ export function App() {
           </Routes>
         </AppLayout>
       </BrowserRouter>
+      <Analytics />
     </AppAccessGate>
   );
 }
