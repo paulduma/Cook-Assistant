@@ -41,5 +41,11 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 
 **Refine UX**
 - Real test on mobile
+- Homepage ne marche pas sur mobile
+- recettes overlap sur le planning
+- course export -> doit pouvoir matcher une liste à cocher sur iphone notes
+- flow global mobile à mieux prendre en compte pour que ça marche (avoir la note pour revenir au début, small improvements)
+- vérifier import recette fonctionne bien
 - Peaufiner le chat assistant (full-page)
 - Revoir la navigation et les flows clés
+
