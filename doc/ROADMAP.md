@@ -48,4 +48,6 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 - vérifier import recette fonctionne bien
 - Peaufiner le chat assistant (full-page)
 - Revoir la navigation et les flows clés
+- scanner une recette depuis un livre ou une page
+- activer mode vocal sur chat
 
