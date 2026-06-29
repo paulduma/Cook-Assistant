@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Recipe, MealSlot } from '../types/recipe';
 import { fetchRecipes } from '../lib/recipes';
@@ -54,6 +54,53 @@ const MONTHS = [
   'décembre',
 ];
 
+const MOBILE_SLOT_H = 'h-[72px]';
+const DESKTOP_SLOT_H = 'h-[80px]';
+
+function getWeekRecipeRecap(mealPlan: MealSlot[], recipes: Recipe[]): Recipe[] {
+  const seen = new Set<string>();
+  const recap: Recipe[] = [];
+
+  for (let day = 0; day < 7; day++) {
+    for (const meal of MEALS) {
+      const slot = mealPlan.find((s) => s.day === day && s.meal === meal);
+      if (!slot?.recipeId || seen.has(slot.recipeId)) continue;
+      const recipe = recipes.find((r) => r.id === slot.recipeId);
+      if (recipe) {
+        seen.add(slot.recipeId);
+        recap.push(recipe);
+      }
+    }
+  }
+
+  return recap;
+}
+
+function WeekRecap({ recipes, compact = false }: { recipes: Recipe[]; compact?: boolean }) {
+  return (
+    <div className={compact ? 'mt-8 pb-4' : 'mt-10'}>
+      <Kicker className="mb-3">Récap de la semaine</Kicker>
+      {recipes.length === 0 ? (
+        <p className="text-[15px] text-ink-soft italic m-0">Aucune recette planifiée pour l&apos;instant.</p>
+      ) : (
+        <ul className="m-0 p-0 list-none border-t border-line">
+          {recipes.map((recipe) => (
+            <li
+              key={recipe.id}
+              className={[
+                'border-b border-line-soft font-display text-ink leading-snug',
+                compact ? 'py-3 text-[17px]' : 'py-3.5 text-[18px]',
+              ].join(' ')}
+            >
+              {recipe.title}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function MealPlanner() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -70,6 +117,7 @@ export function MealPlanner() {
   });
 
   const weekDates = getWeekDates();
+  const weekRecap = useMemo(() => getWeekRecipeRecap(mealPlan, recipes), [mealPlan, recipes]);
 
   useEffect(() => {
     void loadData();
@@ -138,22 +186,25 @@ export function MealPlanner() {
   };
 
   const renderFilledSlot = (recipe: Recipe, day: number, meal: string, compact = false) => (
-    <div className="relative group w-full h-full">
+    <div className="relative group w-full h-full min-h-0 overflow-hidden">
       <div
+        title={recipe.title}
         className={[
-          'w-full h-full text-left border-l-[3px] border-ember bg-transparent',
-          compact ? 'px-4 py-3.5 bg-cream border border-line' : 'px-3.5 flex flex-col justify-center',
+          'w-full h-full min-h-0 overflow-hidden text-left border-l-[3px] border-ember bg-transparent',
+          compact
+            ? 'px-4 py-3 bg-cream border border-line flex flex-col justify-center'
+            : 'px-3.5 flex flex-col justify-center',
         ].join(' ')}
       >
         <div
           className={[
-            'font-display text-ink leading-[1.1]',
-            compact ? 'text-[19px]' : 'text-[16px]',
+            'font-display text-ink leading-[1.15] line-clamp-2',
+            compact ? 'text-[17px]' : 'text-[16px]',
           ].join(' ')}
         >
           {recipe.title}
         </div>
-        <div className="font-label text-[10px] uppercase tracking-wide text-muted mt-1">
+        <div className="font-label text-[10px] uppercase tracking-wide text-muted mt-1 truncate shrink-0">
           {recipe.cookingTime} min · {recipe.servings} p.
         </div>
       </div>
@@ -177,7 +228,7 @@ export function MealPlanner() {
       className={[
         'w-full flex items-center justify-center text-muted hover:text-ember bg-transparent border-0 cursor-pointer',
         compact
-          ? 'gap-2 border-[1.5px] border-dashed border-line py-4'
+          ? 'gap-2 border-[1.5px] border-dashed border-line h-full'
           : 'h-full',
       ].join(' ')}
     >
@@ -241,12 +292,15 @@ export function MealPlanner() {
         return (
           <div key={meal} className="mb-3.5">
             <Kicker className="text-muted mb-2">{MEAL_LABELS[meal]}</Kicker>
-            {recipe
-              ? renderFilledSlot(recipe, mobileDay, meal, true)
-              : renderEmptySlot(mobileDay, meal, true)}
+            <div className={MOBILE_SLOT_H}>
+              {recipe
+                ? renderFilledSlot(recipe, mobileDay, meal, true)
+                : renderEmptySlot(mobileDay, meal, true)}
+            </div>
           </div>
         );
       })}
+      <WeekRecap recipes={weekRecap} compact />
     </div>
   );
 
@@ -314,7 +368,7 @@ export function MealPlanner() {
                 return (
                   <div
                     key={d.short}
-                    className="flex-1 h-[80px] -ml-px border-l border-line flex items-center justify-center"
+                    className={`flex-1 ${DESKTOP_SLOT_H} min-h-[80px] max-h-[80px] overflow-hidden -ml-px border-l border-line flex items-center justify-center`}
                   >
                     {recipe ? renderFilledSlot(recipe, di, meal) : renderEmptySlot(di, meal)}
                   </div>
@@ -323,6 +377,8 @@ export function MealPlanner() {
             </div>
           ))}
         </div>
+
+        <WeekRecap recipes={weekRecap} />
       </div>
 
       {showRecipeSelector && selectedSlot && (
