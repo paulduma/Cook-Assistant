@@ -10,8 +10,8 @@ import { GroceryList } from './pages/GroceryList';
 
 export function App() {
   return (
-    <AppAccessGate>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AppAccessGate>
         <AppLayout>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -21,8 +21,8 @@ export function App() {
             <Route path="/grocery" element={<GroceryList />} />
           </Routes>
         </AppLayout>
-      </BrowserRouter>
+      </AppAccessGate>
       <Analytics />
-    </AppAccessGate>
+    </BrowserRouter>
   );
 }

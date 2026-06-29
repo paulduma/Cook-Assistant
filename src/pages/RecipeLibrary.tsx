@@ -229,6 +229,7 @@ export function RecipeLibrary() {
           onOpenRecipe={setSelectedRecipe}
           onAddRecipe={() => setShowAddModal(true)}
           onNavigate={handleNavTab}
+          onHome={() => navigate('/')}
         />
         {showAddModal && (
           <AddRecipeModal

@@ -41,6 +41,7 @@ export function Home() {
   const weekNum = getWeekNumber();
 
   const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
+  const goHome = () => navigate('/');
 
   const handleAsk = (query: string) => {
     const trimmed = query.trim();
@@ -91,8 +92,8 @@ export function Home() {
   if (isMobile) {
     return (
       <MobileScreen
-        top={<MobileTopBar wordmark />}
-        bottom={<MobileTabBar active="recettes" onNavigate={handleNavTab} />}
+        top={<MobileTopBar wordmark onHome={goHome} />}
+        bottom={<MobileTabBar active="" onNavigate={handleNavTab} />}
       >
         <div className="px-6 pt-[34px] pb-6 text-center">
           <Kicker className="mb-4">Le menu de la semaine · N°{weekNum}</Kicker>

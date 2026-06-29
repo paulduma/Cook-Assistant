@@ -6,7 +6,7 @@ import { localStorageHelper } from '../lib/supabase';
 import { AddRecipeModal, recipeToModalRecipe } from '../components/AddRecipeModal';
 import { Kicker, Button } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
-import { MobileScreen, MobileTabBar } from '../components/ui/MobileShell';
+import { MobileScreen, MobileTabBar, MobileWordmark } from '../components/ui/MobileShell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pathFromNavKey, TabKey } from '../lib/nav';
 
@@ -194,7 +194,10 @@ export function MealPlanner() {
 
   const mobileTop = (
     <div className="bg-cream border-b border-line shrink-0">
-      <div className="px-5 pb-3" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}>
+      <div className="px-5 pt-1 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}>
+        <MobileWordmark onHome={() => navigate('/')} />
+      </div>
+      <div className="px-5 pb-3">
         <Kicker className="mb-1">Repas de la semaine</Kicker>
         <div className="font-display text-[28px] text-ink">Planning</div>
       </div>

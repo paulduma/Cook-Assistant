@@ -5,7 +5,7 @@ import { fetchRecipes } from '../lib/recipes';
 import { localStorageHelper } from '../lib/supabase';
 import { Kicker, Button, SectionRule } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
-import { MobileScreen, MobileTabBar } from '../components/ui/MobileShell';
+import { MobileScreen, MobileTabBar, MobileWordmark } from '../components/ui/MobileShell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pathFromNavKey, TabKey } from '../lib/nav';
 
@@ -436,9 +436,12 @@ export function GroceryList() {
 
   const mobileTop = (
     <div
-      className="bg-cream border-b border-line px-5 shrink-0"
-      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
+      className="bg-cream border-b border-line shrink-0"
     >
+      <div className="px-5 pt-1 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}>
+        <MobileWordmark onHome={() => navigate('/')} />
+      </div>
+      <div className="px-5 pb-3">
       <div className="flex items-center justify-between mb-3 pb-3">
         <div>
           <Kicker className="mb-1">{kickerText()}</Kicker>
@@ -461,6 +464,7 @@ export function GroceryList() {
         onChange={setGroupByRecipe}
         className="gap-5 pb-0"
       />
+      </div>
     </div>
   );
 

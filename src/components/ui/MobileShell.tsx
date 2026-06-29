@@ -2,16 +2,43 @@ import React from 'react';
 import { Icon, IconName } from './Icon';
 import { TabKey } from '../../lib/nav';
 
+export function MobileWordmark({
+  onHome,
+  className = '',
+}: {
+  onHome?: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onHome}
+      className={[
+        'flex items-center gap-2.5 bg-transparent border-0 cursor-pointer p-0 text-left',
+        className,
+      ].join(' ')}
+      aria-label="Accueil"
+    >
+      <span className="w-[30px] h-[30px] rounded-full border-[1.4px] border-ember flex items-center justify-center shrink-0 text-ember">
+        <Icon name="hat" size={16} strokeWidth={1.6} />
+      </span>
+      <span className="font-display text-[22px] text-ink tracking-wide">Chez Verdi</span>
+    </button>
+  );
+}
+
 export function MobileTopBar({
   title,
   back,
   wordmark,
   onBack,
+  onHome,
 }: {
   title?: string;
   back?: boolean;
   wordmark?: boolean;
   onBack?: () => void;
+  onHome?: () => void;
 }) {
   return (
     <div
@@ -28,14 +55,21 @@ export function MobileTopBar({
         </button>
       )}
       {wordmark ? (
-        <div className="flex-1 flex items-center gap-2.5">
-          <span className="w-[30px] h-[30px] rounded-full border-[1.4px] border-ember flex items-center justify-center shrink-0 text-ember">
-            <Icon name="hat" size={16} strokeWidth={1.6} />
-          </span>
-          <span className="font-display text-[22px] text-ink tracking-wide">Chez Verdi</span>
-        </div>
+        <MobileWordmark onHome={onHome} className="flex-1" />
       ) : (
-        <span className="font-display text-[21px] text-ink flex-1">{title}</span>
+        <>
+          {onHome && (
+            <button
+              type="button"
+              onClick={onHome}
+              className="w-[30px] h-[30px] rounded-full border-[1.4px] border-ember flex items-center justify-center shrink-0 text-ember bg-transparent cursor-pointer"
+              aria-label="Accueil"
+            >
+              <Icon name="hat" size={16} strokeWidth={1.6} />
+            </button>
+          )}
+          <span className="font-display text-[21px] text-ink flex-1">{title}</span>
+        </>
       )}
     </div>
   );

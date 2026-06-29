@@ -1,6 +1,6 @@
 import React from 'react';
 import { Recipe } from '../../types/recipe';
-import { MobileScreen, MobileTopBar, MobileTabBar } from '../ui/MobileShell';
+import { MobileScreen, MobileTopBar, MobileTabBar, MobileWordmark } from '../ui/MobileShell';
 import { Kicker, Thumb } from '../ui/primitives';
 import { Icon } from '../ui/Icon';
 import { TabKey } from '../../lib/nav';
@@ -15,6 +15,7 @@ export function LibraryListMobile({
   onOpenRecipe,
   onAddRecipe,
   onNavigate,
+  onHome,
 }: {
   recipes: Recipe[];
   searchQuery: string;
@@ -25,12 +26,16 @@ export function LibraryListMobile({
   onOpenRecipe: (recipe: Recipe) => void;
   onAddRecipe: () => void;
   onNavigate: (key: TabKey) => void;
+  onHome: () => void;
 }) {
   const top = (
     <div
-      className="bg-cream border-b border-line px-5 pb-3.5 shrink-0"
-      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
+      className="bg-cream border-b border-line shrink-0"
     >
+      <div className="px-5 pt-1 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}>
+        <MobileWordmark onHome={onHome} />
+      </div>
+      <div className="px-5 pb-3.5">
       <div className="flex items-center justify-between mb-3.5">
         <div>
           <Kicker className="mb-1 whitespace-nowrap">Le carnet maison</Kicker>
@@ -82,6 +87,7 @@ export function LibraryListMobile({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 

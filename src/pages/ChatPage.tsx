@@ -717,7 +717,7 @@ export function ChatPage() {
     return (
       <MobileScreen
         scroll={false}
-        top={<MobileTopBar title="Assistant" />}
+        top={<MobileTopBar title="Assistant" onHome={() => navigate('/')} />}
         bottom={
           <>
             {composer(true)}
