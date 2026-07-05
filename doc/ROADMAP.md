@@ -52,4 +52,6 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 
 Quelques bugs trouvés en testant
 - la session IA ne persiste pas si on change d'onglet - à fix
+- pouvoir aller sur une recette et demander de la modifier avec l'assistant
+- bug quand tentative de batch edit - j'ai fait générer 3 recettes, mais il n'a pas réussi à enregistrer les 3 en même temps dans le carnet
 
