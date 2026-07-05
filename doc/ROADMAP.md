@@ -43,11 +43,13 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 - Real test on mobile
 - Homepage ne marche pas sur mobile -> solved, to test
 - recettes overlap sur le planning -> solved, to test
-- course export -> doit pouvoir matcher une liste à cocher sur iphone notes
 - flow global mobile à mieux prendre en compte pour que ça marche (avoir la note pour revenir au début, small improvements)
 - vérifier import recette fonctionne bien
 - Peaufiner le chat assistant (full-page)
 - Revoir la navigation et les flows clés
 - scanner une recette depuis un livre ou une page
 - activer mode vocal sur chat
+
+Quelques bugs trouvés en testant
+- la session IA ne persiste pas si on change d'onglet - à fix
 
