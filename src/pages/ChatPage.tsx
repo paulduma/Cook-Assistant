@@ -32,6 +32,7 @@ import { NewRecipeSuggestion } from '../components/assistant/NewRecipeSuggestion
 import { WeekPlanValidation } from '../components/assistant/WeekPlanValidation';
 import { CookingSessionBar } from '../components/assistant/CookingSessionBar';
 import { RecipeUpdatePrompt } from '../components/assistant/RecipeUpdatePrompt';
+import { loadChatSession, saveChatSession, clearChatSession } from '../lib/chatSessionStorage';
 
 const CHIPS = ['Planifier la semaine', 'Je vais cuisiner', 'Vider le frigo', 'Idées veggie', 'Rapide en semaine'];
 
@@ -161,26 +162,30 @@ export function ChatPage() {
   const initialMessage = (location.state as { initialMessage?: string } | null)?.initialMessage;
 
   const [prompt, setPrompt] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () => loadChatSession()?.messages ?? []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [savedSuggestionTitles, setSavedSuggestionTitles] = useState<Map<string, string>>(
-    () => new Map()
+    () => new Map(loadChatSession()?.savedSuggestionTitles ?? [])
   );
   const [appliedWeekPlanIndices, setAppliedWeekPlanIndices] = useState<Set<number>>(
-    () => new Set()
+    () => new Set(loadChatSession()?.appliedWeekPlanIndices ?? [])
   );
   const [dismissedRecipeUpdates, setDismissedRecipeUpdates] = useState<Set<number>>(
-    () => new Set()
+    () => new Set(loadChatSession()?.dismissedRecipeUpdates ?? [])
   );
   const [savedRecipeUpdateIndices, setSavedRecipeUpdateIndices] = useState<Set<number>>(
-    () => new Set()
+    () => new Set(loadChatSession()?.savedRecipeUpdateIndices ?? [])
   );
   const [savingSuggestionTitle, setSavingSuggestionTitle] = useState<string | null>(null);
   const [applyingWeekPlanIndex, setApplyingWeekPlanIndex] = useState<number | null>(null);
   const [savingRecipeUpdateIndex, setSavingRecipeUpdateIndex] = useState<number | null>(null);
-  const [cookingBarDismissed, setCookingBarDismissed] = useState(false);
+  const [cookingBarDismissed, setCookingBarDismissed] = useState(
+    () => loadChatSession()?.cookingBarDismissed ?? false
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -224,6 +229,24 @@ export function ChatPage() {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    saveChatSession({
+      messages,
+      savedSuggestionTitles: Array.from(savedSuggestionTitles.entries()),
+      appliedWeekPlanIndices: Array.from(appliedWeekPlanIndices),
+      dismissedRecipeUpdates: Array.from(dismissedRecipeUpdates),
+      savedRecipeUpdateIndices: Array.from(savedRecipeUpdateIndices),
+      cookingBarDismissed,
+    });
+  }, [
+    messages,
+    savedSuggestionTitles,
+    appliedWeekPlanIndices,
+    dismissedRecipeUpdates,
+    savedRecipeUpdateIndices,
+    cookingBarDismissed,
+  ]);
 
   const sendMessage = async (content: string) => {
     const trimmed = content.trim();
@@ -327,6 +350,7 @@ export function ChatPage() {
     setDismissedRecipeUpdates(new Set());
     setSavedRecipeUpdateIndices(new Set());
     setCookingBarDismissed(false);
+    clearChatSession();
     inputRef.current?.focus();
   };
 
