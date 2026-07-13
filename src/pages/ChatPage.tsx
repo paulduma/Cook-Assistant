@@ -180,7 +180,9 @@ export function ChatPage() {
   const [savedRecipeUpdateIndices, setSavedRecipeUpdateIndices] = useState<Set<number>>(
     () => new Set(loadChatSession()?.savedRecipeUpdateIndices ?? [])
   );
-  const [savingSuggestionTitle, setSavingSuggestionTitle] = useState<string | null>(null);
+  const [savingSuggestionTitles, setSavingSuggestionTitles] = useState<Set<string>>(
+    () => new Set()
+  );
   const [applyingWeekPlanIndex, setApplyingWeekPlanIndex] = useState<number | null>(null);
   const [savingRecipeUpdateIndex, setSavingRecipeUpdateIndex] = useState<number | null>(null);
   const [cookingBarDismissed, setCookingBarDismissed] = useState(
@@ -190,6 +192,10 @@ export function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasSentInitial = useRef(false);
+  // Synchronous lock (unlike React state, updates are visible immediately) so the
+  // manual "Ajouter au carnet" click and the auto-save-on-affirmation flow below
+  // never both insert the same suggested recipe.
+  const suggestionSaveLockRef = useRef<Set<string>>(new Set());
 
   const parseForSession = useCallback(
     (content: string) => {
@@ -295,12 +301,17 @@ export function ChatPage() {
 
       const parsed = parseAssistantMessage(enrichedResponse, freshRecipes);
       if (isAffirmativeMessage(trimmed) && parsed.suggested.length > 0) {
-        const titleToId = new Map(savedSuggestionTitles);
+        let savedAny = false;
         for (const suggested of parsed.suggested) {
           const norm = suggested.title.toLowerCase().trim();
-          if (titleToId.has(norm) || findRecipeByTitleLoose(suggested.title, freshRecipes)) {
+          if (
+            savedSuggestionTitles.has(norm) ||
+            suggestionSaveLockRef.current.has(norm) ||
+            findRecipeByTitleLoose(suggested.title, freshRecipes)
+          ) {
             continue;
           }
+          suggestionSaveLockRef.current.add(norm);
           try {
             const created = await createRecipe({
               title: suggested.title,
@@ -310,13 +321,15 @@ export function ChatPage() {
               servings: suggested.servings,
               tags: suggested.tags,
             });
-            titleToId.set(norm, created.id);
+            setSavedSuggestionTitles((prev) => new Map(prev).set(norm, created.id));
+            savedAny = true;
           } catch (err) {
             console.warn('Auto-save suggested recipe failed:', err);
+          } finally {
+            suggestionSaveLockRef.current.delete(norm);
           }
         }
-        if (titleToId.size > savedSuggestionTitles.size) {
-          setSavedSuggestionTitles(titleToId);
+        if (savedAny) {
           await refreshRecipes();
         }
       }
@@ -368,12 +381,17 @@ export function ChatPage() {
 
   const handleSaveSuggestion = async (suggested: SuggestedRecipe) => {
     const norm = suggested.title.toLowerCase().trim();
-    if (savedSuggestionTitles.has(norm)) return;
+    if (savedSuggestionTitles.has(norm) || suggestionSaveLockRef.current.has(norm)) return;
 
-    setSavingSuggestionTitle(norm);
+    suggestionSaveLockRef.current.add(norm);
+    setSavingSuggestionTitles((prev) => new Set(prev).add(norm));
     setError(null);
 
     try {
+      if (findRecipeByTitleLoose(suggested.title, recipes)) {
+        return;
+      }
+
       const created = await createRecipe({
         title: suggested.title,
         ingredients: suggested.ingredients,
@@ -393,7 +411,12 @@ export function ChatPage() {
         err instanceof Error ? err.message : "Impossible d'ajouter la recette au carnet";
       setError(message);
     } finally {
-      setSavingSuggestionTitle(null);
+      suggestionSaveLockRef.current.delete(norm);
+      setSavingSuggestionTitles((prev) => {
+        const next = new Set(prev);
+        next.delete(norm);
+        return next;
+      });
     }
   };
 
@@ -581,7 +604,7 @@ export function ChatPage() {
                   recipe={suggested}
                   compact={compact}
                   isSaved={isSaved}
-                  isSaving={savingSuggestionTitle === norm}
+                  isSaving={savingSuggestionTitles.has(norm)}
                   onSave={() => void handleSaveSuggestion(suggested)}
                 />
               );
