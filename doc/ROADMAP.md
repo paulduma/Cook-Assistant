@@ -52,4 +52,4 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 
 Quelques bugs trouvés en testant
 - pouvoir aller sur une recette et demander de la modifier avec l'assistant
-
+- overlap quand plusieurs recettes données par l'assistant: en faire un carousel ?

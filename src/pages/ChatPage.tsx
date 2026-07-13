@@ -388,10 +388,6 @@ export function ChatPage() {
     setError(null);
 
     try {
-      if (findRecipeByTitleLoose(suggested.title, recipes)) {
-        return;
-      }
-
       const created = await createRecipe({
         title: suggested.title,
         ingredients: suggested.ingredients,
