@@ -25,6 +25,7 @@ import {
 import { Recipe } from '../types/recipe';
 import { Kicker, AssistantAvatar, Thumb } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import { Carousel } from '../components/ui/Carousel';
 import { MobileScreen, MobileTopBar, MobileTabBar } from '../components/ui/MobileShell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pathFromNavKey, TabKey } from '../lib/nav';
@@ -566,47 +567,52 @@ export function ChatPage() {
           {parsed.text}
         </p>
 
-        {!hideCarnetCards && parsed.mentioned.length > 0 && (
-          <div
-            className={[
-              'mt-4',
-              compact ? 'flex flex-col' : 'flex gap-3.5 flex-wrap md:flex-nowrap',
-            ].join(' ')}
-          >
-            {parsed.mentioned.map((recipe) => (
-              <RecipeSuggestion
-                key={recipe.id}
-                recipe={recipe}
-                compact={compact}
-                onAddToPlan={() => addToPlanning(recipe.id)}
-                onOpen={() => openRecipe(recipe.id)}
-              />
-            ))}
-          </div>
-        )}
+        {!hideCarnetCards && parsed.mentioned.length > 0 && (() => {
+          const mentionedCards = parsed.mentioned.map((recipe) => (
+            <RecipeSuggestion
+              key={recipe.id}
+              recipe={recipe}
+              compact={compact}
+              onAddToPlan={() => addToPlanning(recipe.id)}
+              onOpen={() => openRecipe(recipe.id)}
+            />
+          ));
+          return (
+            <div className="mt-4">
+              {!compact && mentionedCards.length > 1 ? (
+                <Carousel>{mentionedCards}</Carousel>
+              ) : (
+                <div className={compact ? 'flex flex-col' : 'flex gap-3.5'}>
+                  {mentionedCards}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
-        {newSuggestions.length > 0 && (
-          <div
-            className={[
-              compact ? 'flex flex-col' : 'flex gap-3.5 flex-wrap md:flex-nowrap',
-            ].join(' ')}
-          >
-            {newSuggestions.map((suggested) => {
-              const norm = suggested.title.toLowerCase().trim();
-              const isSaved = savedSuggestionTitles.has(norm);
-              return (
-                <NewRecipeSuggestion
-                  key={suggested.title}
-                  recipe={suggested}
-                  compact={compact}
-                  isSaved={isSaved}
-                  isSaving={savingSuggestionTitles.has(norm)}
-                  onSave={() => void handleSaveSuggestion(suggested)}
-                />
-              );
-            })}
-          </div>
-        )}
+        {newSuggestions.length > 0 && (() => {
+          const newSuggestionCards = newSuggestions.map((suggested) => {
+            const norm = suggested.title.toLowerCase().trim();
+            const isSaved = savedSuggestionTitles.has(norm);
+            return (
+              <NewRecipeSuggestion
+                key={suggested.title}
+                recipe={suggested}
+                compact={compact}
+                isSaved={isSaved}
+                isSaving={savingSuggestionTitles.has(norm)}
+                onSave={() => void handleSaveSuggestion(suggested)}
+              />
+            );
+          });
+          return !compact && newSuggestionCards.length > 1 ? (
+            <Carousel>{newSuggestionCards}</Carousel>
+          ) : (
+            <div className={compact ? 'flex flex-col' : 'flex gap-3.5'}>
+              {newSuggestionCards}
+            </div>
+          );
+        })()}
 
         {parsed.weekPlan.length > 0 && (
           <WeekPlanValidation
