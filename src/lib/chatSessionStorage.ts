@@ -8,6 +8,7 @@ export interface StoredChatSession {
   appliedWeekPlanIndices: number[];
   dismissedRecipeUpdates: number[];
   savedRecipeUpdateIndices: number[];
+  addedToPlanningRecipeIds: string[];
   cookingBarDismissed: boolean;
 }
 

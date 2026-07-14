@@ -74,11 +74,13 @@ function RecipeSuggestion({
   recipe,
   onAddToPlan,
   onOpen,
+  isAddedToPlan = false,
   compact = false,
 }: {
   recipe: Recipe;
   onAddToPlan: () => void;
   onOpen: () => void;
+  isAddedToPlan?: boolean;
   compact?: boolean;
 }) {
   const tag = recipe.tags[0] ?? 'Recette';
@@ -109,16 +111,25 @@ function RecipeSuggestion({
         </div>
         <div className={`flex gap-2 ${compact ? '' : ''}`}>
           <button
+            type="button"
             onClick={onAddToPlan}
+            disabled={isAddedToPlan}
             className={[
-              'inline-flex items-center gap-1.5 font-label font-semibold uppercase tracking-wide text-creamlight bg-ember cursor-pointer border-0 whitespace-nowrap',
+              'inline-flex items-center gap-1.5 font-label font-semibold uppercase tracking-wide border-0 whitespace-nowrap',
+              isAddedToPlan
+                ? 'text-muted bg-line cursor-default'
+                : 'text-creamlight bg-ember cursor-pointer',
               compact
                 ? 'text-[10px] px-3 py-1.5'
                 : 'text-[10.5px] px-3 py-2',
             ].join(' ')}
           >
-            <Icon name="plus" size={compact ? 12 : 13} strokeWidth={2.1} />
-            Au planning
+            <Icon
+              name={isAddedToPlan ? 'check' : 'plus'}
+              size={compact ? 12 : 13}
+              strokeWidth={2.1}
+            />
+            {isAddedToPlan ? 'Ajouté' : 'Au planning'}
           </button>
           {!compact && (
             <button
@@ -180,6 +191,9 @@ export function ChatPage() {
   );
   const [savedRecipeUpdateIndices, setSavedRecipeUpdateIndices] = useState<Set<number>>(
     () => new Set(loadChatSession()?.savedRecipeUpdateIndices ?? [])
+  );
+  const [addedToPlanningRecipeIds, setAddedToPlanningRecipeIds] = useState<Set<string>>(
+    () => new Set(loadChatSession()?.addedToPlanningRecipeIds ?? [])
   );
   const [savingSuggestionTitles, setSavingSuggestionTitles] = useState<Set<string>>(
     () => new Set()
@@ -244,6 +258,7 @@ export function ChatPage() {
       appliedWeekPlanIndices: Array.from(appliedWeekPlanIndices),
       dismissedRecipeUpdates: Array.from(dismissedRecipeUpdates),
       savedRecipeUpdateIndices: Array.from(savedRecipeUpdateIndices),
+      addedToPlanningRecipeIds: Array.from(addedToPlanningRecipeIds),
       cookingBarDismissed,
     });
   }, [
@@ -252,6 +267,7 @@ export function ChatPage() {
     appliedWeekPlanIndices,
     dismissedRecipeUpdates,
     savedRecipeUpdateIndices,
+    addedToPlanningRecipeIds,
     cookingBarDismissed,
   ]);
 
@@ -363,6 +379,7 @@ export function ChatPage() {
     setAppliedWeekPlanIndices(new Set());
     setDismissedRecipeUpdates(new Set());
     setSavedRecipeUpdateIndices(new Set());
+    setAddedToPlanningRecipeIds(new Set());
     setCookingBarDismissed(false);
     clearChatSession();
     inputRef.current?.focus();
@@ -371,7 +388,9 @@ export function ChatPage() {
   const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
 
   const addToPlanning = (recipeId: string) => {
-    if (!addRecipeToFirstEmptySlot(recipeId)) {
+    if (addRecipeToFirstEmptySlot(recipeId)) {
+      setAddedToPlanningRecipeIds((prev) => new Set(prev).add(recipeId));
+    } else {
       navigate('/planning');
     }
   };
@@ -573,6 +592,7 @@ export function ChatPage() {
               key={recipe.id}
               recipe={recipe}
               compact={compact}
+              isAddedToPlan={addedToPlanningRecipeIds.has(recipe.id)}
               onAddToPlan={() => addToPlanning(recipe.id)}
               onOpen={() => openRecipe(recipe.id)}
             />
