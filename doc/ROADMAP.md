@@ -41,8 +41,6 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 
 **Refine UX**
 - Real test on mobile
-- Homepage ne marche pas sur mobile -> solved, to test
-- recettes overlap sur le planning -> solved, to test
 - flow global mobile à mieux prendre en compte pour que ça marche (avoir la note pour revenir au début, small improvements)
 - vérifier import recette fonctionne bien
 - Peaufiner le chat assistant (full-page)
@@ -52,4 +50,5 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 
 Quelques bugs trouvés en testant
 - pouvoir aller sur une recette et demander de la modifier avec l'assistant
-- overlap quand plusieurs recettes données par l'assistant: en faire un carousel ?
+
+- filtres dans le planning : on ne peut pas les faire défiler
