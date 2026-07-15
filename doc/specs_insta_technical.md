@@ -281,22 +281,22 @@ impact sur le build frontend existant).
 
 Ordonnées par dépendance :
 
-- [ ] **T0** — Confirmer l'hébergement du backend (Railway/Fly/Render) et créer le compte/projet (~1h) : décision bloquante pour T5-T7
-- [ ] **T1** — Migration Supabase `source_url` + mise à jour `Recipe`/`RecipeRow`/mappers dans `src/lib/recipes.ts` (~1h)
-- [ ] **T2** — `src/types/recipeImport.ts` : types du contrat API (~0.5h)
-- [ ] **T3** — `src/lib/recipeImport.ts` : validation d'URL (regex Instagram), client HTTP (`fetch` + header secret + `AbortController` 45s), mapping `RecipeImportResponse → RecipeImportResult` (incluant `formatIngredient`, parsing durée/portions) (~3h)
-- [ ] **T4** — Heuristique `missing_info → UncertainFields` (mapping mot-clé simple, ex. si une entrée de `missing_info` contient "portions"/"servings" → `uncertainFields.servings = true`) (~1.5h)
-- [ ] **T5** — Backend : squelette FastAPI (`/health`, `/import` avec validation du header secret et de l'URL) (~2h)
-- [ ] **T6** — Backend : pipeline `yt-dlp` → `ffmpeg` (3 frames) → appel Claude Haiku vision, avec retry JSON + gestion des codes d'erreur du §4.2 (~5h, dépend d'un prompt d'extraction à itérer)
-- [ ] **T7** — Backend : Dockerfile (python + ffmpeg + yt-dlp), déploiement sur la plateforme choisie en T0, variables d'env (`ANTHROPIC_API_KEY`, `IMPORT_SHARED_SECRET`) (~2h)
-- [ ] **T8** — `AddRecipeModal.ImportBody` : champ URL + validation inline + états loading/erreur, appel `importFromUrl`, callback `onImported` (~2.5h)
-- [ ] **T9** — `RecipeForm` : élargir le type de `recipe` à `Partial<Recipe>`, ajouter prop `uncertainFields` + styles visuels (bordure/icône) sur les champs concernés (titre, portions, temps, lignes ingrédients/étapes) (~2.5h)
-- [ ] **T10** — `RecipeLibrary.tsx` + `RecipeLibraryMobile.tsx` : state `importDraft`, `handleImported`, transmission de `sourceUrl` dans `handleSaveRecipe` → `createRecipe` (~2h)
-- [ ] **T11** — Variables d'env frontend (`VITE_IMPORT_API_URL`, `VITE_IMPORT_SHARED_SECRET`) + `.env.example` (~0.5h)
-- [ ] **Tests** — Tests unitaires `recipeImport.ts` (mapping, validation URL, heuristique uncertainFields) suivant le pattern existant (`recipeSearch.test.ts`, `chatSessionStorage.test.ts`) (~2h)
-- [ ] **T12** — Test manuel end-to-end : lien réel Instagram → formulaire prérempli → sauvegarde → vérifier apparition identique dans planning/courses (~1h)
+- [ ] **T0** — Confirmer l'hébergement du backend (Railway/Fly/Render) et créer le compte/projet : décision bloquante pour T5-T7
+- [ ] **T1** — Migration Supabase `source_url` + mise à jour `Recipe`/`RecipeRow`/mappers dans `src/lib/recipes.ts`
+- [ ] **T2** — `src/types/recipeImport.ts` : types du contrat API
+- [ ] **T3** — `src/lib/recipeImport.ts` : validation d'URL (regex Instagram), client HTTP (`fetch` + header secret + `AbortController` 45s), mapping `RecipeImportResponse → RecipeImportResult` (incluant `formatIngredient`, parsing durée/portions)
+- [ ] **T4** — Heuristique `missing_info → UncertainFields` (mapping mot-clé simple, ex. si une entrée de `missing_info` contient "portions"/"servings" → `uncertainFields.servings = true`)
+- [ ] **T5** — Backend : squelette FastAPI (`/health`, `/import` avec validation du header secret et de l'URL)
+- [ ] **T6** — Backend : pipeline `yt-dlp` → `ffmpeg` (3 frames) → appel Claude Haiku vision, avec retry JSON + gestion des codes d'erreur du §4.2 (dépend d'un prompt d'extraction à itérer)
+- [ ] **T7** — Backend : Dockerfile (python + ffmpeg + yt-dlp), déploiement sur la plateforme choisie en T0, variables d'env (`ANTHROPIC_API_KEY`, `IMPORT_SHARED_SECRET`)
+- [ ] **T8** — `AddRecipeModal.ImportBody` : champ URL + validation inline + états loading/erreur, appel `importFromUrl`, callback `onImported`
+- [ ] **T9** — `RecipeForm` : élargir le type de `recipe` à `Partial<Recipe>`, ajouter prop `uncertainFields` + styles visuels (bordure/icône) sur les champs concernés (titre, portions, temps, lignes ingrédients/étapes)
+- [ ] **T10** — `RecipeLibrary.tsx` + `RecipeLibraryMobile.tsx` : state `importDraft`, `handleImported`, transmission de `sourceUrl` dans `handleSaveRecipe` → `createRecipe`
+- [ ] **T11** — Variables d'env frontend (`VITE_IMPORT_API_URL`, `VITE_IMPORT_SHARED_SECRET`) + `.env.example`
+- [ ] **Tests** — Tests unitaires `recipeImport.ts` (mapping, validation URL, heuristique uncertainFields) suivant le pattern existant (`recipeSearch.test.ts`, `chatSessionStorage.test.ts`)
+- [ ] **T12** — Test manuel end-to-end : lien réel Instagram → formulaire prérempli → sauvegarde → vérifier apparition identique dans planning/courses
 
-**Total estimé : ~27h** (hors itération sur le prompt d'extraction, dépendante de la qualité réelle des résultats — non estimable à l'avance).
+Le prompt d'extraction (T6) reste la principale inconnue de planning : sa qualité se juge sur des posts réels, pas à l'avance.
 
 ---
 
