@@ -14,6 +14,7 @@ export interface RecipeRow {
   servings: number;
   tags: string[];
   created_at: string;
+  source_url: string | null;
 }
 
 type RecipeInput = Omit<Recipe, 'id' | 'createdAt'>;
@@ -30,6 +31,7 @@ export function toRecipe(row: RecipeRow): Recipe {
     servings: row.servings,
     tags: row.tags,
     createdAt: row.created_at,
+    sourceUrl: row.source_url ?? undefined,
   };
 }
 
@@ -43,6 +45,7 @@ export function toRecipeRow(data: RecipeInput | RecipeUpdate): Partial<RecipeRow
   if (data.cookingTime !== undefined) row.cooking_time = data.cookingTime;
   if (data.servings !== undefined) row.servings = data.servings;
   if (data.tags !== undefined) row.tags = data.tags;
+  if (data.sourceUrl !== undefined) row.source_url = data.sourceUrl ?? null;
 
   return row;
 }

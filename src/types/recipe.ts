@@ -8,6 +8,8 @@ export interface Recipe {
   servings: number;
   tags: string[];
   createdAt: string;
+  /** Lien d'origine (ex. Instagram) — traçabilité, non mis en avant dans l'UI */
+  sourceUrl?: string;
 }
 export interface MealSlot {
   day: number; // 0-6 for days of week

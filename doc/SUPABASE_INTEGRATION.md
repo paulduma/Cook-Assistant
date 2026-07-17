@@ -171,6 +171,7 @@ create table public.recipes (
   cooking_time int not null default 30,
   servings int not null default 4,
   tags text[] not null default '{}',
+  source_url text,
   created_at timestamptz not null default now()
 );
 
@@ -191,6 +192,15 @@ create policy "anon_delete_recipes"
 ```
 
 Verify in **Table Editor** that you can manually insert a test row.
+
+**Migration ultérieure — `source_url` (import Instagram)** : si la table existe déjà, exécuter aussi :
+
+```sql
+alter table public.recipes
+  add column if not exists source_url text;
+```
+
+Fichier versionné : [`supabase/migrations/20260715_add_source_url_to_recipes.sql`](../supabase/migrations/20260715_add_source_url_to_recipes.sql).
 
 ---
 

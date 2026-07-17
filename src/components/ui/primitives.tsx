@@ -62,19 +62,26 @@ export function Field({
   placeholder,
   onChange,
   required,
+  uncertain = false,
 }: {
   label: string;
   value?: string;
   placeholder?: string;
   onChange?: (v: string) => void;
   required?: boolean;
+  uncertain?: boolean;
 }) {
   return (
     <label className="block mb-5">
-      <Kicker className="text-ink-soft mb-2">{label}</Kicker>
+      <Kicker className={`mb-2 ${uncertain ? 'text-ember' : 'text-ink-soft'}`}>
+        {label}
+        {uncertain ? ' ⚠' : ''}
+      </Kicker>
       <input
-        className="w-full bg-transparent border-b-[1.5px] border-line focus:border-ink
-                   outline-none py-2 text-[17px] text-ink placeholder:text-muted placeholder:italic"
+        className={[
+          'w-full bg-transparent border-b-[1.5px] outline-none py-2 text-[17px] text-ink placeholder:text-muted placeholder:italic',
+          uncertain ? 'border-ember focus:border-ember-dark' : 'border-line focus:border-ink',
+        ].join(' ')}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange?.(e.target.value)}

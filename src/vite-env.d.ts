@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY: string;
   readonly VITE_OPENAI_API_KEY?: string;
   readonly VITE_APP_ACCESS_CODE?: string;
+  readonly VITE_IMPORT_API_URL?: string;
+  readonly VITE_IMPORT_SHARED_SECRET?: string;
 }
 
 interface ImportMeta {

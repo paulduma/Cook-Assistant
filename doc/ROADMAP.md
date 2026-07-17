@@ -19,8 +19,6 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 - **Mode planification** : clarifier si besoin, shortlist 5–6 idées du carnet, itérer, produire `PLAN_SEMAINE` à la validation
 - **Mode cuisine** : chercher dans le carnet, guider pas à pas, adapter en cours de route, proposer mise à jour via `MAJ_RECETTE_JSON`
 
-
-- Import de recettes depuis un lien (Instagram, TikTok, URL)
 - Liste de courses intelligente générée depuis le chat (fusion des ingrédients)
 - Alternative Gemini ? modèle + perf pour recherche google ?
 
@@ -33,12 +31,13 @@ Plan détaillé : [ASSISTANT_PRD.md](./ASSISTANT_PRD.md)
 - Configurer le déploiement une fois la décision prise
 - Faire aussi la doc et le rendre partageable facilement
 
-### Plus tard
-**Import de recettes depuis un lien**
-- Importer une recette depuis Instagram, TikTok ou n'importe quelle URL
-- Extraction automatique des ingrédients et étapes
-- Feature pour ajouter une recette facilement sans saisie manuelle
+### Import Instagram (à déployer)
+Specs : [specs_insta.md](./specs_insta.md) · [specs_insta_technical.md](./specs_insta_technical.md)
+- Frontend câblé (modal + formulaire + `source_url`)
+- Backend : déployer `import-service/` (Railway/Fly/Render) + migration SQL `source_url`
+- Test manuel end-to-end sur un reel réel
 
+### Plus tard
 **Refine UX**
 - Real test on mobile
 - flow global mobile à mieux prendre en compte pour que ça marche (avoir la note pour revenir au début, small improvements)

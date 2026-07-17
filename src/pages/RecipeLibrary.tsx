@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Recipe } from '../types/recipe';
+import { RecipeImportResult, UncertainFields } from '../types/recipeImport';
 import { RecipeCard } from '../components/RecipeCard';
 import { RecipeForm } from '../components/RecipeForm';
 import { AddRecipeModal } from '../components/AddRecipeModal';
@@ -34,6 +35,9 @@ export function RecipeLibrary() {
   const [showForm, setShowForm] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [importDraft, setImportDraft] = useState<Partial<Recipe> | null>(null);
+  const [uncertainFields, setUncertainFields] = useState<UncertainFields | undefined>();
+  const [referenceCaption, setReferenceCaption] = useState<string | undefined>();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,6 +92,14 @@ export function RecipeLibrary() {
     setFilteredRecipes(filtered);
   };
 
+  const clearFormState = () => {
+    setShowForm(false);
+    setEditingRecipe(null);
+    setImportDraft(null);
+    setUncertainFields(undefined);
+    setReferenceCaption(undefined);
+  };
+
   const handleSaveRecipe = async (
     recipeData: Omit<Recipe, 'id' | 'createdAt'>,
     imageFile?: File
@@ -118,8 +130,7 @@ export function RecipeLibrary() {
         }
         setRecipes((prev) => [saved, ...prev]);
       }
-      setShowForm(false);
-      setEditingRecipe(null);
+      clearFormState();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Impossible d’enregistrer la recette');
     } finally {
@@ -143,6 +154,18 @@ export function RecipeLibrary() {
   const openBlankRecipeForm = () => {
     setShowAddModal(false);
     setEditingRecipe(null);
+    setImportDraft(null);
+    setUncertainFields(undefined);
+    setReferenceCaption(undefined);
+    setShowForm(true);
+  };
+
+  const handleImported = (result: RecipeImportResult) => {
+    setShowAddModal(false);
+    setEditingRecipe(null);
+    setImportDraft(result.draft);
+    setUncertainFields(result.uncertainFields);
+    setReferenceCaption(result.rawCaption);
     setShowForm(true);
   };
 
@@ -151,6 +174,19 @@ export function RecipeLibrary() {
       navigate('/planning');
     }
   };
+
+  const formRecipe = importDraft ?? editingRecipe ?? undefined;
+
+  const recipeForm = (
+    <RecipeForm
+      recipe={formRecipe}
+      uncertainFields={uncertainFields}
+      referenceCaption={referenceCaption}
+      onSave={handleSaveRecipe}
+      onCancel={clearFormState}
+      saving={saving}
+    />
+  );
 
   const allTags = Array.from(new Set(recipes.flatMap((r) => r.tags)));
 
@@ -179,22 +215,9 @@ export function RecipeLibrary() {
   if (isMobile) {
     if (showForm) {
       return (
-        <RecipeFormMobile
-          onBack={() => {
-            setShowForm(false);
-            setEditingRecipe(null);
-          }}
-        >
+        <RecipeFormMobile onBack={clearFormState}>
           {errorBanner}
-          <RecipeForm
-            recipe={editingRecipe || undefined}
-            onSave={handleSaveRecipe}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingRecipe(null);
-            }}
-            saving={saving}
-          />
+          {recipeForm}
         </RecipeFormMobile>
       );
     }
@@ -206,6 +229,9 @@ export function RecipeLibrary() {
           onBack={() => setSelectedRecipe(null)}
           onAddToPlan={() => handleAddToPlan(selectedRecipe.id)}
           onEdit={() => {
+            setImportDraft(null);
+            setUncertainFields(undefined);
+            setReferenceCaption(undefined);
             setEditingRecipe(selectedRecipe);
             setShowForm(true);
           }}
@@ -236,6 +262,7 @@ export function RecipeLibrary() {
             mode="import"
             onClose={() => setShowAddModal(false)}
             onCreateBlank={openBlankRecipeForm}
+            onImported={handleImported}
           />
         )}
       </>
@@ -247,15 +274,7 @@ export function RecipeLibrary() {
       <div className="bg-paper min-h-full">
         <div className="max-w-[740px] mx-auto px-11 py-10">
           {errorBanner}
-          <RecipeForm
-            recipe={editingRecipe || undefined}
-            onSave={handleSaveRecipe}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingRecipe(null);
-            }}
-            saving={saving}
-          />
+          {recipeForm}
         </div>
       </div>
     );
@@ -292,6 +311,9 @@ export function RecipeLibrary() {
                 icon="edit"
                 variant="outline"
                 onClick={() => {
+                  setImportDraft(null);
+                  setUncertainFields(undefined);
+                  setReferenceCaption(undefined);
                   setEditingRecipe(selectedRecipe);
                   setShowForm(true);
                 }}
@@ -425,6 +447,7 @@ export function RecipeLibrary() {
           mode="import"
           onClose={() => setShowAddModal(false)}
           onCreateBlank={openBlankRecipeForm}
+          onImported={handleImported}
         />
       )}
     </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Recipe } from '../types/recipe';
+import { UncertainFields } from '../types/recipeImport';
 import {
   IngredientLine,
   formatIngredients,
@@ -9,7 +10,9 @@ import { Kicker, Button, Field, Thumb } from './ui/primitives';
 import { Icon } from './ui/Icon';
 
 interface RecipeFormProps {
-  recipe?: Recipe;
+  recipe?: Partial<Recipe>;
+  uncertainFields?: UncertainFields;
+  referenceCaption?: string;
   onSave: (recipe: Omit<Recipe, 'id' | 'createdAt'>, imageFile?: File) => void;
   onCancel: () => void;
   saving?: boolean;
@@ -18,7 +21,14 @@ interface RecipeFormProps {
 const underlineInput =
   'flex-1 bg-transparent outline-none text-[17px] text-ink placeholder:text-muted placeholder:italic';
 
-export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeFormProps) {
+export function RecipeForm({
+  recipe,
+  uncertainFields,
+  referenceCaption,
+  onSave,
+  onCancel,
+  saving = false,
+}: RecipeFormProps) {
   const [title, setTitle] = useState(recipe?.title || '');
   const [image, setImage] = useState(recipe?.image || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -31,6 +41,7 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
   const [cookingTime, setCookingTime] = useState(recipe?.cookingTime || 30);
   const [servings, setServings] = useState(recipe?.servings || 4);
   const [tags, setTags] = useState<string[]>(recipe?.tags || []);
+  const [sourceUrl] = useState(recipe?.sourceUrl);
   const [newTag, setNewTag] = useState('');
   const quantityRefs = useRef<Array<HTMLInputElement | null>>([]);
   const nameRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -47,6 +58,7 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
   }, [imageFile]);
 
   const previewSrc = imagePreview || image || undefined;
+  const isEditingExisting = Boolean(recipe?.id);
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,6 +86,7 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
         cookingTime,
         servings,
         tags,
+        sourceUrl,
       },
       imageFile ?? undefined
     );
@@ -163,17 +176,44 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
   };
 
   const preventEnterSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === 'Enter') e.preventDefault();
+    if (e.key !== 'Enter') return;
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'TEXTAREA') return;
+    e.preventDefault();
   };
+
+  const uncertainLineClass = (uncertain?: boolean) =>
+    uncertain ? 'border-ember' : 'border-line-soft';
 
   return (
     <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit}>
-      <Kicker className="mb-2.5">{recipe ? 'Édition' : 'Nouvelle recette'}</Kicker>
+      <Kicker className="mb-2.5">{isEditingExisting ? 'Édition' : 'Nouvelle recette'}</Kicker>
       <h1 className="font-display text-[34px] sm:text-[44px] text-ink m-0 mb-7">
-        {recipe ? 'Modifier la recette' : 'Ajouter une recette'}
+        {isEditingExisting ? 'Modifier la recette' : 'Ajouter une recette'}
       </h1>
 
-      <Field label="Titre de la recette" value={title} onChange={setTitle} required />
+      {uncertainFields && (
+        <p className="text-[14px] text-ink-soft m-0 mb-5 leading-[1.45] border border-ember/40 bg-ember-soft/40 px-3.5 py-3">
+          Certains champs sont incertains (⚠) — vérifiez-les avant d’enregistrer.
+        </p>
+      )}
+
+      {referenceCaption && (
+        <div className="mb-6 border border-dashed border-line bg-cream px-3.5 py-3">
+          <Kicker className="text-muted mb-2">Légende source (référence)</Kicker>
+          <p className="text-[14px] text-ink-soft m-0 whitespace-pre-wrap leading-[1.45]">
+            {referenceCaption}
+          </p>
+        </div>
+      )}
+
+      <Field
+        label="Titre de la recette"
+        value={title}
+        onChange={setTitle}
+        required
+        uncertain={uncertainFields?.title}
+      />
 
       <Kicker className="text-ink-soft mb-3">Image</Kicker>
       <Thumb label="aperçu" src={previewSrc} className="h-[180px] w-full max-w-[320px] mb-4" />
@@ -215,6 +255,7 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
             label="Temps de cuisson (min)"
             value={String(cookingTime)}
             onChange={(v) => setCookingTime(Number(v) || 1)}
+            uncertain={uncertainFields?.cookingTime}
           />
         </div>
         <div className="flex-1">
@@ -222,6 +263,7 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
             label="Portions"
             value={String(servings)}
             onChange={(v) => setServings(Number(v) || 1)}
+            uncertain={uncertainFields?.servings}
           />
         </div>
       </div>
@@ -235,7 +277,9 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
       {ingredients.map((ingredient, index) => (
         <div
           key={index}
-          className="flex items-center gap-3.5 mb-1.5 border-b border-line-soft py-2"
+          className={`flex items-center gap-3.5 mb-1.5 border-b py-2 ${uncertainLineClass(
+            uncertainFields?.ingredients?.[index]
+          )}`}
         >
           <input
             ref={(el) => {
@@ -259,6 +303,11 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
             className={underlineInput}
             placeholder="pâtes"
           />
+          {uncertainFields?.ingredients?.[index] && (
+            <span className="text-ember text-[13px] shrink-0" title="À vérifier">
+              ⚠
+            </span>
+          )}
           <button
             type="button"
             onClick={() => removeIngredient(index)}
@@ -281,7 +330,9 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
       {steps.map((step, index) => (
         <div
           key={index}
-          className="flex items-start gap-[18px] mb-2 border-b border-line-soft py-2"
+          className={`flex items-start gap-[18px] mb-2 border-b py-2 ${uncertainLineClass(
+            uncertainFields?.steps?.[index]
+          )}`}
         >
           <div className="font-display text-2xl text-ember leading-none w-[30px] shrink-0 pt-0.5">
             {String(index + 1).padStart(2, '0')}
@@ -297,6 +348,11 @@ export function RecipeForm({ recipe, onSave, onCancel, saving = false }: RecipeF
             rows={2}
             placeholder="Décrivez cette étape…"
           />
+          {uncertainFields?.steps?.[index] && (
+            <span className="text-ember text-[13px] shrink-0 mt-1" title="À vérifier">
+              ⚠
+            </span>
+          )}
           <button
             type="button"
             onClick={() => removeStep(index)}

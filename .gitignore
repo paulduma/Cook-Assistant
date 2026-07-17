@@ -34,4 +34,9 @@ dist-ssr
 *.key
 *.pem
 secrets/
-*.secret 
+*.secret
+
+# Python import service
+import-service/.venv/
+import-service/__pycache__/
+ 
