@@ -1,5 +1,16 @@
 # Spec — Import de recette depuis un lien Instagram
 
+**Statut :** ✅ Implémenté (branche `feature/instagram-recipe-import`) — **en attente de test**
+
+### Reste à faire
+- [ ] Appliquer la migration SQL `source_url` sur Supabase
+- [ ] Configurer les env frontend (`VITE_IMPORT_API_URL`, `VITE_IMPORT_SHARED_SECRET`)
+- [ ] Déployer `import-service/` (Railway / Fly / Render) + `ANTHROPIC_API_KEY` / `IMPORT_SHARED_SECRET`
+- [ ] Test manuel E2E : reel Instagram → formulaire prérempli → sauvegarde → planning / courses
+- [ ] Merger la branche une fois le test validé
+
+---
+
 ## 1. Contexte
 
 L'appli permet déjà de sauvegarder des recettes, planifier la semaine et gérer les
@@ -127,6 +138,8 @@ Notes de mapping :
   côté client
 
 ## 10. Critères d'acceptation
+
+> Implémentation code OK — cases à cocher après validation manuelle.
 
 - [ ] Je peux coller un lien Instagram valide et déclencher un import
 - [ ] Un formulaire pré-rempli s'affiche avec les champs extraits

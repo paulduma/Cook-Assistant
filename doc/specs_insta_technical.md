@@ -1,8 +1,16 @@
 # PRD Technique — Import de recette depuis un lien Instagram
 
 **Basé sur :** [doc/specs_insta.md](./specs_insta.md) (spec fonctionnelle)
-**Stack :** React 18 + Vite + TypeScript (frontend), + un nouveau petit service Python (backend, à créer)
+**Stack :** React 18 + Vite + TypeScript (frontend), + service Python FastAPI (`import-service/`)
 **Date :** 2026-07-15
+**Statut :** ✅ Code livré sur `feature/instagram-recipe-import` — **en attente de test / déploiement**
+
+### Reste à faire
+- [ ] **T0 / T7** — Choisir l’hébergeur et déployer `import-service/` (Dockerfile prêt)
+- [ ] Appliquer la migration Supabase `source_url`
+- [ ] Renseigner les variables d’env (frontend + service)
+- [ ] **T12** — Test manuel E2E sur un reel réel
+- [ ] Review / merge de la branche
 
 ---
 
@@ -281,22 +289,22 @@ impact sur le build frontend existant).
 
 Ordonnées par dépendance :
 
-- [ ] **T0** — Confirmer l'hébergement du backend (Railway/Fly/Render) et créer le compte/projet : décision bloquante pour T5-T7
-- [ ] **T1** — Migration Supabase `source_url` + mise à jour `Recipe`/`RecipeRow`/mappers dans `src/lib/recipes.ts`
-- [ ] **T2** — `src/types/recipeImport.ts` : types du contrat API
-- [ ] **T3** — `src/lib/recipeImport.ts` : validation d'URL (regex Instagram), client HTTP (`fetch` + header secret + `AbortController` 45s), mapping `RecipeImportResponse → RecipeImportResult` (incluant `formatIngredient`, parsing durée/portions)
-- [ ] **T4** — Heuristique `missing_info → UncertainFields` (mapping mot-clé simple, ex. si une entrée de `missing_info` contient "portions"/"servings" → `uncertainFields.servings = true`)
-- [ ] **T5** — Backend : squelette FastAPI (`/health`, `/import` avec validation du header secret et de l'URL)
-- [ ] **T6** — Backend : pipeline `yt-dlp` → `ffmpeg` (3 frames) → appel Claude Haiku vision, avec retry JSON + gestion des codes d'erreur du §4.2 (dépend d'un prompt d'extraction à itérer)
-- [ ] **T7** — Backend : Dockerfile (python + ffmpeg + yt-dlp), déploiement sur la plateforme choisie en T0, variables d'env (`ANTHROPIC_API_KEY`, `IMPORT_SHARED_SECRET`)
-- [ ] **T8** — `AddRecipeModal.ImportBody` : champ URL + validation inline + états loading/erreur, appel `importFromUrl`, callback `onImported`
-- [ ] **T9** — `RecipeForm` : élargir le type de `recipe` à `Partial<Recipe>`, ajouter prop `uncertainFields` + styles visuels (bordure/icône) sur les champs concernés (titre, portions, temps, lignes ingrédients/étapes)
-- [ ] **T10** — `RecipeLibrary.tsx` + `RecipeLibraryMobile.tsx` : state `importDraft`, `handleImported`, transmission de `sourceUrl` dans `handleSaveRecipe` → `createRecipe`
-- [ ] **T11** — Variables d'env frontend (`VITE_IMPORT_API_URL`, `VITE_IMPORT_SHARED_SECRET`) + `.env.example`
-- [ ] **Tests** — Tests unitaires `recipeImport.ts` (mapping, validation URL, heuristique uncertainFields) suivant le pattern existant (`recipeSearch.test.ts`, `chatSessionStorage.test.ts`)
+- [x] **T0** — Confirmer l'hébergement du backend (Railway/Fly/Render) et créer le compte/projet : décision bloquante pour T5-T7 → *décision monorepo `import-service/` prise ; déploiement hébergeur encore à faire*
+- [x] **T1** — Migration Supabase `source_url` + mise à jour `Recipe`/`RecipeRow`/mappers dans `src/lib/recipes.ts` → *fichier SQL + code prêts ; migration à appliquer en prod*
+- [x] **T2** — `src/types/recipeImport.ts` : types du contrat API
+- [x] **T3** — `src/lib/recipeImport.ts` : validation d'URL (regex Instagram), client HTTP (`fetch` + header secret + `AbortController` 45s), mapping `RecipeImportResponse → RecipeImportResult` (incluant `formatIngredient`, parsing durée/portions)
+- [x] **T4** — Heuristique `missing_info → UncertainFields` (mapping mot-clé simple, ex. si une entrée de `missing_info` contient "portions"/"servings" → `uncertainFields.servings = true`)
+- [x] **T5** — Backend : squelette FastAPI (`/health`, `/import` avec validation du header secret et de l'URL)
+- [x] **T6** — Backend : pipeline `yt-dlp` → `ffmpeg` (3 frames) → appel Claude Haiku vision, avec retry JSON + gestion des codes d'erreur du §4.2 (dépend d'un prompt d'extraction à itérer)
+- [ ] **T7** — Backend : Dockerfile (python + ffmpeg + yt-dlp), déploiement sur la plateforme choisie en T0, variables d'env (`ANTHROPIC_API_KEY`, `IMPORT_SHARED_SECRET`) → *Dockerfile prêt ; déploiement + secrets à faire*
+- [x] **T8** — `AddRecipeModal.ImportBody` : champ URL + validation inline + états loading/erreur, appel `importFromUrl`, callback `onImported`
+- [x] **T9** — `RecipeForm` : élargir le type de `recipe` à `Partial<Recipe>`, ajouter prop `uncertainFields` + styles visuels (bordure/icône) sur les champs concernés (titre, portions, temps, lignes ingrédients/étapes)
+- [x] **T10** — `RecipeLibrary.tsx` + `RecipeLibraryMobile.tsx` : state `importDraft`, `handleImported`, transmission de `sourceUrl` dans `handleSaveRecipe` → `createRecipe`
+- [x] **T11** — Variables d'env frontend (`VITE_IMPORT_API_URL`, `VITE_IMPORT_SHARED_SECRET`) + `.env.example`
+- [x] **Tests** — Tests unitaires `recipeImport.ts` (mapping, validation URL, heuristique uncertainFields) suivant le pattern existant (`recipeSearch.test.ts`, `chatSessionStorage.test.ts`)
 - [ ] **T12** — Test manuel end-to-end : lien réel Instagram → formulaire prérempli → sauvegarde → vérifier apparition identique dans planning/courses
 
-Le prompt d'extraction (T6) reste la principale inconnue de planning : sa qualité se juge sur des posts réels, pas à l'avance.
+Le prompt d'extraction (T6) reste la principale inconnue de qualité : elle se juge sur des posts réels (T12).
 
 ---
 
@@ -314,10 +322,10 @@ Le prompt d'extraction (T6) reste la principale inconnue de planning : sa qualit
 
 ## 9. Définition of Done
 
-- [ ] Tous les critères d'acceptance de la spec fonctionnelle (§10 de `specs_insta.md`) sont couverts
-- [ ] Tests unitaires écrits et passants (`npm run test`)
-- [ ] `npm run build` passe sans erreur TypeScript
-- [ ] Pas de `console.log` dans le code final (hors `console.warn` déjà toléré dans `recipes.ts`)
+- [ ] Tous les critères d'acceptance de la spec fonctionnelle (§10 de `specs_insta.md`) sont couverts *(après T12)*
+- [x] Tests unitaires écrits et passants (`npm run test`)
+- [x] `npm run build` passe sans erreur TypeScript
+- [x] Pas de `console.log` dans le code final (hors `console.warn` déjà toléré dans `recipes.ts`)
 - [ ] Code review effectuée
-- [ ] `doc/ROADMAP.md` mis à jour (retirer l'item "Import de recettes depuis un lien" de "Plus tard")
-- [ ] `doc/SUPABASE_INTEGRATION.md` mis à jour si la migration `source_url` change la table de référence documentée
+- [x] `doc/ROADMAP.md` mis à jour (retirer l'item "Import de recettes depuis un lien" de "Plus tard")
+- [x] `doc/SUPABASE_INTEGRATION.md` mis à jour si la migration `source_url` change la table de référence documentée → *sur la branche feature ; à merger*
