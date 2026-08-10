@@ -243,13 +243,20 @@ export function ChatPage() {
     void refreshRecipes();
   }, [refreshRecipes]);
 
+  const isFirstScrollRef = useRef(true);
   useEffect(() => {
+    if (isFirstScrollRef.current) {
+      isFirstScrollRef.current = false;
+      return;
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!isMobile) {
+      inputRef.current?.focus();
+    }
+  }, [isMobile]);
 
   useEffect(() => {
     saveChatSession({
