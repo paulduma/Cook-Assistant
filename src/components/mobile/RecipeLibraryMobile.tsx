@@ -110,7 +110,7 @@ export function LibraryListMobile({
                 <div className="px-4 pt-[15px] pb-[17px]">
                   <Kicker className="text-olive mb-1.5">{tag}</Kicker>
                   <div className="font-display text-[23px] text-ink mb-2.5">{r.title}</div>
-                  <div className="font-label flex gap-2.5 text-ink-soft text-[10.5px] uppercase tracking-wide pb-2.5 border-b border-line-soft whitespace-nowrap">
+                  <div className="font-label flex gap-2.5 text-ink-soft text-[10.5px] uppercase tracking-wide pb-2.5 border-b border-line-soft whitespace-nowrap overflow-hidden">
                     <span>{r.cookingTime} min</span>
                     <span className="text-line">·</span>
                     <span>{r.servings} portions</span>

@@ -59,6 +59,10 @@ export function RecipeLibrary() {
     filterRecipes();
   }, [recipes, searchQuery, selectedTag]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selectedRecipe, showForm]);
+
   const loadRecipes = async () => {
     setLoading(true);
     setError(null);

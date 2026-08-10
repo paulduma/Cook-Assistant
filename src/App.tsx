@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { AppAccessGate } from './components/AppAccessGate';
 import { AppLayout } from './components/AppLayout';
@@ -8,11 +9,22 @@ import { RecipeLibrary } from './pages/RecipeLibrary';
 import { MealPlanner } from './pages/MealPlanner';
 import { GroceryList } from './pages/GroceryList';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export function App() {
   return (
     <BrowserRouter>
       <AppAccessGate>
         <AppLayout>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/chat" element={<ChatPage />} />

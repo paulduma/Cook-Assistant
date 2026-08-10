@@ -54,7 +54,7 @@ const MONTHS = [
   'décembre',
 ];
 
-const MOBILE_SLOT_H = 'h-[72px]';
+const MOBILE_SLOT_H = 'h-[92px]';
 const DESKTOP_SLOT_H = 'h-[80px]';
 
 function getWeekRecipeRecap(mealPlan: MealSlot[], recipes: Recipe[]): Recipe[] {

@@ -106,7 +106,7 @@ function RecipeSuggestion({
         >
           {recipe.title}
         </div>
-        <div className="font-label text-[10px] md:text-[10.5px] uppercase tracking-wide text-muted mb-2 md:mb-3 whitespace-nowrap">
+        <div className="font-label text-[10px] md:text-[10.5px] uppercase tracking-wide text-muted mb-2 md:mb-3 truncate">
           {recipe.cookingTime} min · {recipe.servings} pers.
         </div>
         <div className={`flex gap-2 ${compact ? '' : ''}`}>
