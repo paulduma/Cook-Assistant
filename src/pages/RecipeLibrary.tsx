@@ -40,6 +40,8 @@ export function RecipeLibrary() {
   const [error, setError] = useState<string | null>(null);
 
   const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
+  const openedFromPlanning =
+    (location.state as { from?: string } | null)?.from === 'planning';
 
   useEffect(() => {
     void loadRecipes();
@@ -54,6 +56,14 @@ export function RecipeLibrary() {
       }
     }
   }, [recipes, location.state]);
+
+  const handleCloseRecipe = () => {
+    if (openedFromPlanning) {
+      navigate(pathFromNavKey('planning'));
+      return;
+    }
+    setSelectedRecipe(null);
+  };
 
   useEffect(() => {
     filterRecipes();
@@ -207,7 +217,7 @@ export function RecipeLibrary() {
       return (
         <RecipeDetailMobile
           recipe={selectedRecipe}
-          onBack={() => setSelectedRecipe(null)}
+          onBack={handleCloseRecipe}
           onAddToPlan={() => handleAddToPlan(selectedRecipe.id)}
           onEdit={() => {
             setEditingRecipe(selectedRecipe);
@@ -272,11 +282,11 @@ export function RecipeLibrary() {
       <div className="bg-paper min-h-full">
         <div className="px-16 py-[38px]">
           <button
-            onClick={() => setSelectedRecipe(null)}
+            onClick={handleCloseRecipe}
             className="font-label flex items-center gap-2.5 text-[12px] uppercase tracking-wide text-ink-soft mb-[30px] cursor-pointer bg-transparent border-0"
           >
             <Icon name="arrowLeft" size={17} strokeWidth={1.8} className="text-ember" />
-            Retour à la bibliothèque
+            {openedFromPlanning ? 'Retour au planning' : 'Retour à la bibliothèque'}
           </button>
 
           <div className="flex justify-between items-start gap-6">

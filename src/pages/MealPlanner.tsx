@@ -76,7 +76,15 @@ function getWeekRecipeRecap(mealPlan: MealSlot[], recipes: Recipe[]): Recipe[] {
   return recap;
 }
 
-function WeekRecap({ recipes, compact = false }: { recipes: Recipe[]; compact?: boolean }) {
+function WeekRecap({
+  recipes,
+  compact = false,
+  onOpenRecipe,
+}: {
+  recipes: Recipe[];
+  compact?: boolean;
+  onOpenRecipe: (recipeId: string) => void;
+}) {
   return (
     <div className={compact ? 'mt-8 pb-4' : 'mt-10'}>
       <Kicker className="mb-3">Récap de la semaine</Kicker>
@@ -85,14 +93,20 @@ function WeekRecap({ recipes, compact = false }: { recipes: Recipe[]; compact?: 
       ) : (
         <ul className="m-0 p-0 list-none border-t border-line">
           {recipes.map((recipe) => (
-            <li
-              key={recipe.id}
-              className={[
-                'border-b border-line-soft font-display text-ink leading-snug',
-                compact ? 'py-3 text-[17px]' : 'py-3.5 text-[18px]',
-              ].join(' ')}
-            >
-              {recipe.title}
+            <li key={recipe.id} className="border-b border-line-soft">
+              <button
+                type="button"
+                onClick={() => onOpenRecipe(recipe.id)}
+                className={[
+                  'w-full flex items-center justify-between gap-4 text-left bg-transparent border-0 cursor-pointer font-display text-ink leading-snug hover:text-ember transition-colors',
+                  compact ? 'py-3 text-[17px]' : 'py-3.5 text-[18px]',
+                ].join(' ')}
+              >
+                <span>{recipe.title}</span>
+                <span className="font-label text-[10px] uppercase tracking-wide text-muted shrink-0">
+                  {recipe.cookingTime} min
+                </span>
+              </button>
             </li>
           ))}
         </ul>
@@ -243,6 +257,12 @@ export function MealPlanner() {
 
   const handleNavTab = (key: TabKey) => navigate(pathFromNavKey(key));
 
+  const openRecipe = (recipeId: string) => {
+    navigate(pathFromNavKey('recettes'), {
+      state: { openRecipeId: recipeId, from: 'planning' },
+    });
+  };
+
   const mobileTop = (
     <div className="bg-cream border-b border-line shrink-0">
       <div className="px-5 pt-1 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}>
@@ -300,7 +320,7 @@ export function MealPlanner() {
           </div>
         );
       })}
-      <WeekRecap recipes={weekRecap} compact />
+      <WeekRecap recipes={weekRecap} compact onOpenRecipe={openRecipe} />
     </div>
   );
 
@@ -378,7 +398,7 @@ export function MealPlanner() {
           ))}
         </div>
 
-        <WeekRecap recipes={weekRecap} />
+        <WeekRecap recipes={weekRecap} onOpenRecipe={openRecipe} />
       </div>
 
       {showRecipeSelector && selectedSlot && (
