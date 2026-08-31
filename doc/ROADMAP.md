@@ -30,8 +30,7 @@ Branche : `feature/instagram-recipe-import`
 - [ ] Env frontend (`VITE_IMPORT_API_URL`, `VITE_IMPORT_SHARED_SECRET`)
 - [ ] Déployer `import-service/` + secrets Anthropic / shared secret
 - [ ] Test E2E sur un reel réel
-- [ ] Merge de la branche
-- [ ] Modification des recettes existantes par l'agent: reprendre les différents tools et améliorer ses capacités 
+- [ ] Merge de la branche 
 
 ---
 
@@ -59,7 +58,7 @@ Code : `src/lib/openai.ts`, `src/lib/chatRecipes.ts`
 
 **À faire** (du plus simple au plus lourd)
 
-- Depuis une recette ouverte, pouvoir demander à l’assistant de la modifier
+- Modifier une recette existante via l’assistant (depuis la page recette ; reprendre les tools et améliorer ses capacités)
 - Liste de courses intelligente depuis le chat (fusion des ingrédients) — recouvre aussi l’item C du plan Supabase
 - Alternative Gemini ? modèle + perf, éventuellement recherche Google
 - Mode vocal sur le chat
