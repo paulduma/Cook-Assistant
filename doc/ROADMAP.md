@@ -31,6 +31,7 @@ Branche : `feature/instagram-recipe-import`
 - [ ] Déployer `import-service/` + secrets Anthropic / shared secret
 - [ ] Test E2E sur un reel réel
 - [ ] Merge de la branche
+- [ ] Modification des recettes existantes par l'agent: reprendre les différents tools et améliorer ses capacités 
 
 ---
 
