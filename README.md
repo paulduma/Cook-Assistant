@@ -3,6 +3,8 @@
 ## 🎯 Goal
 
 Create a **personal cooking assistant** that helps save time in everyday life by suggesting recipes I like, helping me **discover new ones**, and **automating meal planning and grocery lists**.
+This is a project I launched this summer to train myself of building a real end-to-end produc AI conversational product. The app is live at [https://verdi-cooking.vercel.app/](https://verdi-cooking.vercel.app/). 
+
 
 ---
 
@@ -71,45 +73,8 @@ Full product spec: [doc/ASSISTANT_PRD.md](./doc/ASSISTANT_PRD.md).
 | Backend / Storage | Supabase                |
 | AI                | LLM (OpenAI or similar) |
 | Styling           | Tailwind CSS            |
+| Hosting           | Vercel                  |
 
 Frontend built with a mix of Lovable and Figma Make for inspiration, and Magic Patterns to finalize and export a first codebase draft
-Backend developed with Cursor
-AI chatbot embed in MVP will use an OpenAI API key
-
----
-
-## 🧰 Developer Setup
-
-```bash
-# 1. Clone the repo
-git clone https://github.com/yourusername/personal-recipes-app.git
-cd personal-recipes-app
-
-# 2. Install dependencies
-npm install
-
-# 3. Start local dev server
-npm run dev
-```
-
-### 🔑 Environment Variables
-
-Create a `.env` file with:
-
-```
-VITE_SUPABASE_URL=<your-supabase-url>
-VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-VITE_OPENAI_API_KEY=<your-openai-api-key>
-```
-
----
-
-## Work in Progress and Next steps
-
-**Assistant — M2 (router + skills + tools)**
-- Intent router and focused skill prompts
-- Real DB tool calls instead of prompt-only lookup
-
-**Other**
-- Refine meal planner UI / UX: easily add recipes (popup, search, simple filters)
-- Import recipes from a URL (Instagram, TikTok, etc.)
+Backend developed with Cursor and Claude Code
+AI chatbot uses an OpenAI API key
